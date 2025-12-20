@@ -1,0 +1,14 @@
+packages:
+  - packages/*
+
+catalog:
+  '@tsconfig/node24': ^24.0.3
+  '@types/node': ^24.10.4
+  jiti: 2.6.1
+  tsdown: 0.18.2
+  type-fest: 5.0.1
+  typescript: 5.9.3
+  vitest: 4.0.16
+
+onlyBuiltDependencies:
+  - esbuild
