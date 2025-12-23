@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "changeset": "changeset",
-    "version": "changeset version",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "prepare": "lefthook install",
     "release": "pnpm -r build && changeset publish",
-    "prepare": "lefthook install"
+    "version": "changeset version"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.10",
