@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "includes": ["**", "!dist", "!**/dist"]
+    "includes": ["**", "!dist", "!**/dist", "!**/*.local.json"]
   },
   "assist": {
     "actions": {
