@@ -3,8 +3,8 @@
   "pre-commit": {
     "commands": {
       "biome check": {
-        "run": "biome check --write {staged_files}",
-        "glob": [".ts", ".tsx", ".js", ".jsx", ".json", ".jsonc"],
+        "run": "pnpm exec biome check --write {staged_files}",
+        "glob": ["*.ts", "*.tsx", "*.js", "*.jsx", "*.json", "*.jsonc"],
         "stage_fixed": true
       }
     }
