@@ -9,6 +9,7 @@
     "check:fix": "biome check --write .",
     "prepare": "lefthook install",
     "release": "pnpm -r build && changeset publish",
+    "test": "pnpm -r test",
     "version": "changeset version"
   },
   "devDependencies": {
