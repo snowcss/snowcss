@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "outDir": "${configDir}/dist",
+    "composite": true,
+    "incremental": true,
+    "declaration": true,
+    "declarationMap": true,
+    "customConditions": ["snowcss"],
+
+    "strict": true,
+    "allowJs": true,
+    "target": "esnext",
+    "module": "preserve",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "exclude": ["${configDir}/dist"]
+}

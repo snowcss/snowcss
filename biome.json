@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "includes": ["**", "!dist", "!**/dist"]
+  },
   "assist": {
     "actions": {
       "source": {
@@ -25,6 +28,18 @@
     "formatWithErrors": true,
     "lineWidth": 100,
     "useEditorconfig": true
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "useConsistentArrayType": {
+          "level": "on",
+          "options": {
+            "syntax": "generic"
+          }
+        }
+      }
+    }
   },
   "javascript": {
     "formatter": {

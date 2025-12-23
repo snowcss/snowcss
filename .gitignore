@@ -7,6 +7,9 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Experiments.
+.cooking
+
 # Artifacts.
 node_modules
 dist
