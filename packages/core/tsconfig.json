@@ -1,15 +1,10 @@
 {
-  "extends": "@tsconfig/node24/tsconfig.json",
-  "include": ["src"],
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "declaration": true,
-    "declarationMap": true,
-    "module": "preserve",
-    "moduleResolution": "bundler",
-    "verbatimModuleSyntax": true,
     "paths": {
       "@/*": ["./src/*"]
     }
-  }
+  },
+  "include": ["src"]
 }
