@@ -1,6 +1,6 @@
 {
   "name": "@snowcss/core",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Snow CSS core package",
   "author": "Vladislav Mamon <hello@nrsk.dev>",
   "maintainers": [
