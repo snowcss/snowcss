@@ -18,8 +18,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          scopes: |
+          types: |
+            *
             core
             vite
             lsp
             vscode
+          requireScope: false
+

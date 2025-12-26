@@ -46,20 +46,20 @@ We use squash merge strategy, so you are free to use any commit message format i
 
 ### PR Titles
 
-PR titles must follow [Conventional Commits](https://www.conventionalcommits.org/) format:
+PR titles must follow the following format:
 
 ```
-type(scope): description
+<scope>: <description>
 ```
 
-- **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
-- **Scopes:** `core`, `vite`, `lsp`, `vscode`
+- **scope**: `core`, `vite`, `lsp`, `vscode`, or `*` for changes that do not affect packages
+- **description**: short description of the change
 
 Examples:
 
-- `feat(core): add support for oklch colors`
-- `fix(vite): resolve hot reload issue`
-- `docs(core): update token API documentation`
+- `core: add support for oklch colors`
+- `vite: resolve hot reload issue`
+- `*: update CI workflows`
 
 ### Changesets
 
