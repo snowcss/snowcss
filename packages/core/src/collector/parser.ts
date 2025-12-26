@@ -1,8 +1,10 @@
-import { type CssNode, type FunctionNode, findAll, parse } from 'css-tree'
+import type { CssNode, FunctionNode } from 'css-tree'
+import { findAll, parse } from 'css-tree'
 
 import { Path } from '@/path'
 
-import { type SnowFunction, TokenFunction, ValueFunction, type ValueModifier } from './functions'
+import type { SnowFunction, ValueModifier } from './functions'
+import { TokenFunction, ValueFunction } from './functions'
 
 /** Valid/used Snow CSS function names. */
 const FUNCTION_NAMES = [TokenFunction.cssFunctionName, ValueFunction.cssFunctionName]

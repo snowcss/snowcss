@@ -1,11 +1,11 @@
 import type { CssNode } from 'css-tree'
 
-import { AbsoluteParser, AbsoluteValue } from './absolute'
+import { PxParser, PxValue } from './absolute'
 import { ColorParser, ColorValue } from './color'
-import { RelativeParser, RelativeValue } from './relative'
+import { RemParser, RemValue } from './relative'
 import { RawParser, RawValue } from './value'
 
-export type TokenValue = AbsoluteValue | ColorValue | RelativeValue | RawValue
+export type TokenValue = PxValue | ColorValue | RemValue | RawValue
 
 export interface TokenValueInput {
   /** Raw input value to be parsed. */
@@ -34,14 +34,8 @@ export class ValueParserChain {
   }
 }
 
-// Re-exports.
-export {
-  AbsoluteParser,
-  AbsoluteValue,
-  ColorParser,
-  ColorValue,
-  RelativeParser,
-  RelativeValue,
-  RawParser,
-  RawValue,
-}
+// Re-export values and parsers.
+export { PxParser, PxValue, ColorParser, ColorValue, RemParser, RemValue, RawParser, RawValue }
+
+// Re-export modifier types.
+export type { Modifiable, ModifyContext, ValueModifier } from './modifier'

@@ -1,5 +1,6 @@
 import { TokenFunction } from './token'
-import { ValueFunction, type ValueModifier } from './value'
+import type { ValueModifier } from './value'
+import { ValueFunction } from './value'
 
 export type SnowFunction = TokenFunction | ValueFunction
 

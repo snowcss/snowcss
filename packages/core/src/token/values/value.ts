@@ -1,11 +1,17 @@
 import type { TokenValue, TokenValueInput, TokenValueParser } from './index'
+import type { Modifiable, ModifyContext, ValueModifier } from './modifier'
 
 /** Represents any other value that has no appropriate representation in Snow CSS. */
-export class RawValue {
+export class RawValue implements Modifiable {
   constructor(
     /** Raw value as a string. */
     public readonly raw: string,
   ) {}
+
+  /** RawValue does not support any modifiers. */
+  public apply(_modifier: ValueModifier, _ctx: ModifyContext): string | null {
+    return null
+  }
 }
 
 export class RawParser implements TokenValueParser {

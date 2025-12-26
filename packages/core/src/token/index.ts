@@ -1,2 +1,11 @@
 export { Token } from './token'
-export { AbsoluteValue, ColorValue, RawValue, RelativeValue, type TokenValue } from './values'
+export {
+  ColorValue,
+  type Modifiable,
+  type ModifyContext,
+  PxValue,
+  RawValue,
+  RemValue,
+  type TokenValue,
+  type ValueModifier,
+} from './values'

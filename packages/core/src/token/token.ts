@@ -2,19 +2,13 @@ import { parse, walk } from 'css-tree'
 
 import { Path } from '@/path'
 
-import {
-  AbsoluteParser,
-  ColorParser,
-  RawParser,
-  RelativeParser,
-  type TokenValue,
-  ValueParserChain,
-} from './values'
+import type { TokenValue } from './values'
+import { ColorParser, PxParser, RawParser, RemParser, ValueParserChain } from './values'
 
 const valueParserChain = new ValueParserChain([
   new ColorParser(),
-  new AbsoluteParser(),
-  new RelativeParser(),
+  new PxParser(),
+  new RemParser(),
   new RawParser(),
 ])
 

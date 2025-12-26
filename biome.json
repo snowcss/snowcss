@@ -32,6 +32,12 @@
   "linter": {
     "rules": {
       "style": {
+        "useImportType": {
+          "level": "on",
+          "options": {
+            "style": "separatedType"
+          }
+        },
         "useConsistentArrayType": {
           "level": "on",
           "options": {

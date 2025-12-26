@@ -1,16 +1,9 @@
 import type { CssNode } from 'css-tree'
-import {
-  type Color,
-  clampRgb,
-  formatCss,
-  formatHex,
-  formatHex8,
-  formatRgb,
-  parse,
-  rgb,
-} from 'culori'
+import type { Color } from 'culori'
+import { clampRgb, formatCss, formatHex, formatHex8, formatRgb, parse, rgb } from 'culori'
 
 import type { TokenValue, TokenValueInput, TokenValueParser } from './index'
+import type { Modifiable, ModifyContext, ValueModifier } from './modifier'
 
 /** RGBA color with values in the [0, 1] range. */
 interface RgbaColor {
@@ -20,12 +13,8 @@ interface RgbaColor {
   alpha: number
 }
 
-interface ModifyOptions {
-  alpha?: number
-}
-
 /** Represents a color value. */
-export class ColorValue {
+export class ColorValue implements Modifiable {
   constructor(
     /** Raw value as a string. */
     public readonly raw: string,
@@ -35,11 +24,18 @@ export class ColorValue {
     public readonly color: Color,
   ) {}
 
-  /** Modifies the color with the given options. */
-  public modify({ alpha }: ModifyOptions): this {
-    this.color.alpha = alpha ?? this.color.alpha
+  /** Applies a modifier to this color value. */
+  public apply(modifier: ValueModifier, _ctx: ModifyContext): string | null {
+    if (modifier.type === 'alpha') {
+      const value = new ColorValue(this.raw, this.hex, {
+        ...this.color,
+        alpha: modifier.value ?? this.color.alpha,
+      })
 
-    return this
+      return value.toCss()
+    }
+
+    return null
   }
 
   /** Returns the color formatted as a hex string. */

@@ -1,24 +1,37 @@
 import type { TokenValue, TokenValueInput, TokenValueParser } from './index'
+import type { Modifiable, ModifyContext, ValueModifier } from './modifier'
 
-/** Root relative units we recognize. */
-const ROOT_RELATIVE_UNITS = ['rcap', 'rch', 'rem', 'rex', 'ric', 'rlh']
-
-/** Represents a value in relative units. */
-export class RelativeValue {
+/** Represents a value in rem units. */
+export class RemValue implements Modifiable {
   constructor(
     /** Raw value as a string. */
     public readonly raw: string,
-    /** Unit of the value. */
-    public readonly unit: string,
     /** Parsed value as a number. */
     public readonly parsed: number,
   ) {}
+
+  /** Applies a modifier to this rem value. */
+  public apply(modifier: ValueModifier, ctx: ModifyContext): string | null {
+    if (modifier.type === 'unit') {
+      // Already rem, return as-is.
+      if (modifier.unit === 'rem') {
+        return `${this.parsed}rem`
+      }
+
+      // Convert to px.
+      if (modifier.unit === 'px') {
+        return `${this.parsed * ctx.rootFontSize}px`
+      }
+    }
+
+    return null
+  }
 }
 
-export class RelativeParser implements TokenValueParser {
+export class RemParser implements TokenValueParser {
   tryParse({ input, node }: TokenValueInput): TokenValue | null {
-    if (node.type === 'Dimension' && ROOT_RELATIVE_UNITS.includes(node.unit)) {
-      return new RelativeValue(input, node.unit, parseFloat(node.value))
+    if (node.type === 'Dimension' && node.unit === 'rem') {
+      return new RemValue(input, parseFloat(node.value))
     }
 
     return null

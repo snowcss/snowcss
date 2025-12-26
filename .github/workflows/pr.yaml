@@ -25,4 +25,3 @@ jobs:
             lsp
             vscode
           requireScope: false
-

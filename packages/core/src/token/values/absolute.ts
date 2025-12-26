@@ -1,21 +1,37 @@
 import type { TokenValue, TokenValueInput, TokenValueParser } from './index'
+import type { Modifiable, ModifyContext, ValueModifier } from './modifier'
 
-/** Represents a value in pixels. */
-export class AbsoluteValue {
+/** Represents a value in px units. */
+export class PxValue implements Modifiable {
   constructor(
     /** Raw value as a string. */
     public readonly raw: string,
-    /** Unit of the value. In this case it's always "px". */
-    public readonly unit: string,
     /** Parsed value as a number. */
     public readonly parsed: number,
   ) {}
+
+  /** Applies a modifier to this px value. */
+  public apply(modifier: ValueModifier, ctx: ModifyContext): string | null {
+    if (modifier.type === 'unit') {
+      // Already px, return as-is.
+      if (modifier.unit === 'px') {
+        return `${this.parsed}px`
+      }
+
+      // Convert px to rem.
+      if (modifier.unit === 'rem') {
+        return `${this.parsed / ctx.rootFontSize}rem`
+      }
+    }
+
+    return null
+  }
 }
 
-export class AbsoluteParser implements TokenValueParser {
+export class PxParser implements TokenValueParser {
   tryParse({ input, node }: TokenValueInput): TokenValue | null {
     if (node.type === 'Dimension' && node.unit === 'px') {
-      return new AbsoluteValue(input, node.unit, parseFloat(node.value))
+      return new PxValue(input, parseFloat(node.value))
     }
 
     return null

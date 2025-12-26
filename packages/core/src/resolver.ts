@@ -1,8 +1,8 @@
-import { type SnowFunction, TokenFunction, type ValueModifier } from '@/collector'
+import type { SnowFunction } from '@/collector'
+import { TokenFunction } from '@/collector'
 import type { Config } from '@/config'
 import type { Path } from '@/path'
-import type { Token } from '@/token'
-import { AbsoluteValue, ColorValue, RelativeValue, type TokenValue } from '@/token'
+import type { ModifyContext, Token, TokenValue } from '@/token'
 
 /** Resolved token with original values and resolved CSS output. */
 export class ResolvedToken {
@@ -54,16 +54,22 @@ export class Resolver {
 
   /** Finds a token matching the function path, accounting for prefix. */
   private findToken(functionPath: Path): Token | null {
-    return this.config?.tokens.find((token) => this.matchPaths(token.path, functionPath)) ?? null
+    return (
+      this.config?.tokens.find((token) => {
+        const tokenSegments = this.config?.config.prefix
+          ? token.path.segments.slice(1)
+          : token.path.segments
+
+        return tokenSegments.join('.') === functionPath.segments.join('.')
+      }) ?? null
+    )
   }
 
-  /** Compares token path (with potential prefix) to function path (without prefix). */
-  private matchPaths(tokenPath: Path, functionPath: Path): boolean {
-    const tokenSegments = this.config?.config.prefix
-      ? tokenPath.segments.slice(1)
-      : tokenPath.segments
-
-    return tokenSegments.join('.') === functionPath.segments.join('.')
+  /** Creates the modify context from config. */
+  private createModifyContext(): ModifyContext {
+    return {
+      rootFontSize: this.config.config.rootFontSize ?? 16,
+    }
   }
 
   /** Resolves token values, applying modifier if applicable. */
@@ -84,55 +90,9 @@ export class Resolver {
     }
 
     const value = token.values[0]
-    const resolved = this.applyModifier(value, fn.modifier)
+    const ctx = this.createModifyContext()
+    const resolved = value.apply(fn.modifier, ctx)
 
     return [resolved ?? token.raw]
-  }
-
-  /** Applies a modifier to a token value, returning the CSS string or null if unsupported. */
-  private applyModifier(value: TokenValue, modifier: ValueModifier): string | null {
-    if (modifier.type === 'alpha') {
-      return this.applyAlphaModifier(value, modifier.value)
-    }
-
-    if (modifier.type === 'unit') {
-      return this.applyUnitModifier(value, modifier.unit)
-    }
-
-    return null
-  }
-
-  /** Applies alpha modifier to a color value. */
-  private applyAlphaModifier(value: TokenValue, alpha: number): string | null {
-    if (!(value instanceof ColorValue)) {
-      return null
-    }
-
-    return value.modify({ alpha }).toCss()
-  }
-
-  /** Applies unit modifier to a relative value. */
-  private applyUnitModifier(value: TokenValue, unit: 'px' | 'rem'): string | null {
-    if (!(value instanceof RelativeValue) && !(value instanceof AbsoluteValue)) {
-      return null
-    }
-
-    const rootFontSize = this.config.config.rootFontSize ?? 16
-
-    if (unit === 'px') {
-      return `${value.parsed * rootFontSize}px`
-    }
-
-    if (unit === 'rem') {
-      // Already rem, return as-is.
-      if (value.unit === 'rem') {
-        return `${value.parsed}rem`
-      }
-
-      // Convert from other root-relative units to rem.
-      return `${value.parsed / rootFontSize}rem`
-    }
-
-    return null
   }
 }
