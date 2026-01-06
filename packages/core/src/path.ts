@@ -1,22 +1,29 @@
-import { escapeCssVarName } from '@/utils'
+import { escapeCssVarName } from './utils'
 
 export class Path {
-  constructor(public readonly segments: Array<string>) {}
+  constructor(readonly segments: Array<string>) {}
 
   /** Creates a path from a dot-separated string, e.g. 'foo.bar.baz'. */
-  public static fromDotPath(path: string): Path {
+  static fromDotPath(path: string): Path {
     return new Path(path.split('.').map((it) => it.trim()))
   }
 
-  /** Returns a CSS variable name that can be used in a CSS rule. */
-  public toCssVar(prefix?: string): string {
-    const segments = this.segments.map(escapeCssVarName)
-    const varName = [prefix ?? '', ...segments].join('-')
-    return `--${varName}`
+  /** Serializes the path into a dot-separated string. */
+  toDotPath(): string {
+    return this.segments.join('.')
+  }
+
+  /** Serializes the path into a CSS variable name. */
+  toCssVar(): string {
+    return `--` + this.segments.map(escapeCssVarName).join('-')
   }
 
   /** Returns a CSS variable reference. */
-  public toCssVarRef(prefix?: string): string {
-    return `var(${this.toCssVar(prefix)})`
+  toCssVarRef(): string {
+    return `var(${this.toCssVar()})`
+  }
+
+  toString(): string {
+    return this.toDotPath()
   }
 }

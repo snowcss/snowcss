@@ -1,4 +1,4 @@
-import type { MaybePromise } from '@/types'
+import type { MaybePromise } from '@/utils'
 import { merge } from '@/utils'
 
 import type { UserTokens } from './tokens'
@@ -23,9 +23,9 @@ export interface InputConfig {
    * - `asset`: emit as CSS asset that will be referenced in the `index.html`.
    * - `inline`: emit as inline `<style>` tag that will be injected into the `index.html`.
    *
-   * @default 'at-rule'
+   * @default 'asset'
    */
-  inject?: 'at-rule' | 'asset' | 'inline'
+  inject?: InjectType
 
   /**
    * Root font size in pixels for rem/px conversion.
@@ -46,6 +46,8 @@ export interface InputConfig {
 }
 
 export interface UserConfig extends InputConfig {
+  inject: InjectType
+  rootFontSize: number
   /** Merged design tokens. Any overrides are merged into the parent tokens. */
   tokens: UserTokens
 }
@@ -56,13 +58,20 @@ export function defineConfig(
   return async () => {
     const inputConfig = await (typeof config === 'function' ? config() : config)
 
-    if (Array.isArray(inputConfig.tokens)) {
-      return {
-        ...inputConfig,
-        tokens: merge(...inputConfig.tokens),
-      }
-    }
-
-    return inputConfig
+    return withDefaults(
+      Array.isArray(inputConfig.tokens)
+        ? withDefaults({
+            ...inputConfig,
+            tokens: merge(...inputConfig.tokens),
+          })
+        : withDefaults(inputConfig),
+    )
   }
+}
+
+function withDefaults(config: InputConfig): UserConfig {
+  config.inject ??= 'asset'
+  config.rootFontSize ??= 16
+
+  return config as UserConfig
 }

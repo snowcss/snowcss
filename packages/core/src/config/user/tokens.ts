@@ -1,6 +1,6 @@
 import type { MergeDeep, PartialDeep } from 'type-fest'
 
-import type { Widen } from '@/types'
+import type { Widen } from '@/utils'
 import { merge } from '@/utils'
 
 export interface UserTokens {

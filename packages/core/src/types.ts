@@ -1,19 +1,15 @@
-/** A type that can be either a value or a promise of a value. */
-export type MaybePromise<T> = T | Promise<T>
+/** Represents a (simplified, compared to css-tree's Location) location in the source CSS. */
+export interface Location {
+  /** Start position of the node. */
+  start: number
+  /** End position of the node. */
+  end: number
+}
 
-/** Widens a given literal type to a wider one recursively. */
-export type Widen<T> = T extends string
-  ? string
-  : T extends number
-    ? number
-    : T extends boolean
-      ? boolean
-      : T extends bigint
-        ? bigint
-        : T extends symbol
-          ? symbol
-          : T extends undefined
-            ? undefined
-            : T extends null
-              ? null
-              : { [K in keyof T]: Widen<T[K]> }
+export interface ToCacheKey<T = unknown> {
+  /**
+   * Returns a unique key for caching/memoization. Optionally accepts an auxiliary value to use for
+   * building the key.
+   */
+  toCacheKey(aux?: T): string
+}

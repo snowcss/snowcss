@@ -1,7 +1,7 @@
 {
-  "name": "@snowcss/core",
-  "version": "0.1.0",
-  "description": "Snow CSS core package",
+  "name": "@snowcss/vite",
+  "version": "1.0.0",
+  "description": "Snow CSS vite plugin",
   "author": "Vladislav Mamon <hello@nrsk.dev>",
   "maintainers": [
     "Vladislav Mamon <hello@nrsk.dev>"
@@ -9,13 +9,14 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/snowcss/snowcss.git",
-    "directory": "packages/core"
+    "directory": "packages/vite"
   },
   "keywords": [
     "design systems",
     "design tokens",
     "typescript",
-    "css"
+    "css",
+    "vite"
   ],
   "license": "MIT",
   "files": [
@@ -48,17 +49,14 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@fastify/deepmerge": "^3.1.0",
-    "css-tree": "^3.1.0",
-    "culori": "^4.0.2",
-    "jiti": "^2.6.1",
-    "type-fest": "^5.3.1"
+    "@snowcss/core": "workspace:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@types/css-tree": "^2.3.11",
-    "@types/culori": "4.0.1",
     "tsdown": "catalog:",
     "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "vite": "^7.0.0"
   }
 }

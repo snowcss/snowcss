@@ -56,10 +56,7 @@ export async function loadConfig(options: LoadConfigOptions): Promise<Config> {
       default: true,
     })
 
-    return await Config.create({
-      config,
-      configPath,
-    })
+    return await Config.create(config, configPath)
   } catch (error) {
     throw new Error(`Failed to load Snow config: ${error}`)
   }

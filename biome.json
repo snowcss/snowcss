@@ -31,6 +31,9 @@
   },
   "linter": {
     "rules": {
+      "complexity": {
+        "noCommaOperator": "off"
+      },
       "style": {
         "useImportType": {
           "level": "on",
@@ -43,7 +46,8 @@
           "options": {
             "syntax": "generic"
           }
-        }
+        },
+        "useTemplate": "off"
       }
     }
   },
