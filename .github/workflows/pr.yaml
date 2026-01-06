@@ -11,17 +11,16 @@ jobs:
   title:
     name: Validate PR Title
     runs-on: ubuntu-latest
-
     steps:
       - name: Validate PR title
-        uses: amannn/action-semantic-pull-request@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          types: |
-            *
-            core
-            vite
-            lsp
-            vscode
-          requireScope: false
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if [[ ! "$PR_TITLE" =~ ^(\*|core|vite|lsp|vscode|snowcss):\ .+ ]]; then
+            echo "Invalid PR title format: $PR_TITLE"
+            echo ""
+            echo "Expected format: <scope>: <message>"
+            echo "Valid scopes: *, core, vite, lsp, vscode, snowcss"
+            exit 1
+          fi
+          echo "PR title is valid"
