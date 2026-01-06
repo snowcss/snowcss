@@ -5,16 +5,15 @@ import { hash } from '@/utils'
 import type { ValueModifier } from '@/values'
 import { AlphaModifier, UnitModifier } from '@/values'
 
-import type { SnowFunction, SnowFunctionName } from './index'
+import type { SnowFunction } from './index'
+import { SnowFunctionName } from './index'
 import { SnowFunctionParser } from './parser'
 
-/** Represents a parsed value() CSS function call. */
+/** Represents a parsed --value() CSS function call. */
 export class ValueFunction implements ToCacheKey<Token> {
-  static readonly fn: SnowFunctionName = 'value'
-
   /** CSS function name/type. */
   get name(): SnowFunctionName {
-    return ValueFunction.fn
+    return SnowFunctionName.Value
   }
 
   constructor(
@@ -59,7 +58,7 @@ export class ValueFunctionParser extends SnowFunctionParser {
     // Handle `/ <percentage>` modifier.
     if (op.type === 'Operator' && op.value === '/') return this.alphaModifier()
 
-    return this.error('unexpected value() modifier')
+    return this.error('unexpected --value() modifier')
   }
 
   private unitModifier(): UnitModifier | null {

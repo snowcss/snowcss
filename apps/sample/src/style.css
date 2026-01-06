@@ -17,18 +17,18 @@
 
 a {
   font-weight: 500;
-  color: value('color.vite' / 50%);
+  color: --value("color.vite" / 50%);
   text-decoration: inherit;
 }
 a:hover {
-  color: token('color.vite');
+  color: --token("color.vite");
 }
 
 body {
   margin: 0;
   display: flex;
   place-items: center;
-  min-width: value('size.80' to px);
+  min-width: --value("size.80" to px);
   min-height: 100vh;
 }
 
@@ -80,8 +80,8 @@ button:focus-visible {
   }
 }
 
-@media (min-width: value('breakpoint.sm')) {
+@media (min-width: --value("breakpoint.sm")) {
   body {
-    opacity: 0.75
+    opacity: 0.75;
   }
 }

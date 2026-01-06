@@ -1,8 +1,8 @@
 import type { Config } from './config'
 import type { WithDiagnostics } from './diagnostics'
 import { Diagnostics } from './diagnostics'
-import type { SnowFunction, SnowFunctionName } from './functions'
-import { TokenFunction, ValueFunction } from './functions'
+import type { SnowFunction } from './functions'
+import { SnowFunctionName, TokenFunction, ValueFunction } from './functions'
 import type { Path } from './path'
 import type { Token } from './token'
 import type { Location } from './types'
@@ -25,7 +25,7 @@ export class ResolvedToken {
 
   /** Returns either a CSS variable reference or a resolved CSS value. */
   toCss(): string {
-    return this.name === 'token' ? this.path.toCssVarRef() : this.resolved.join(' ')
+    return this.name === SnowFunctionName.Token ? this.path.toCssVarRef() : this.resolved.join(' ')
   }
 }
 

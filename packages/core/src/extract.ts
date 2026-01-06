@@ -3,17 +3,15 @@ import { parse as parseCssTree, walk as walkCssTree } from 'css-tree'
 
 import type { WithDiagnostics } from './diagnostics'
 import { Diagnostics } from './diagnostics'
-import type { SnowFunction } from './functions/index'
-import {
-  TokenFunction,
-  TokenFunctionParser,
-  ValueFunction,
-  ValueFunctionParser,
-} from './functions/index'
+import type { SnowFunction } from './functions'
+import { SnowFunctionName, TokenFunctionParser, ValueFunctionParser } from './functions'
 import type { Location } from './types'
 
 /** Valid/used Snow CSS function names. */
-const FUNCTION_NAMES: Array<string> = [TokenFunction.fn, ValueFunction.fn]
+const FUNCTION_NAMES: Array<string> = [
+  SnowFunctionName.Token,
+  SnowFunctionName.Value,
+] satisfies Array<SnowFunctionName>
 
 /**
  * Extracts all Snow CSS functions usages from a CSS string.
@@ -60,7 +58,7 @@ function parse(node: FunctionNode, diagnostics: Diagnostics): SnowFunction | nul
   }
 
   const parser =
-    node.name === ValueFunction.fn
+    node.name === SnowFunctionName.Value
       ? new ValueFunctionParser(node, location, diagnostics)
       : new TokenFunctionParser(node, location, diagnostics)
 

@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "includes": ["**", "!dist", "!**/dist", "!**/*.local.json"]
+    "includes": ["**", "!dist", "!**/dist", "!**/*.local.json", "!**/*.vue"]
   },
   "assist": {
     "actions": {
@@ -48,6 +48,14 @@
           }
         },
         "useTemplate": "off"
+      },
+      "suspicious": {
+        "noUnknownAtRules": {
+          "level": "on",
+          "options": {
+            "ignore": ["snowcss"]
+          }
+        }
       }
     }
   },

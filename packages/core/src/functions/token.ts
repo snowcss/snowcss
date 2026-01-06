@@ -2,16 +2,15 @@ import type { Path } from '@/path'
 import type { Token } from '@/token'
 import type { Location, ToCacheKey } from '@/types'
 
-import type { SnowFunction, SnowFunctionName } from './index'
+import type { SnowFunction } from './index'
+import { SnowFunctionName } from './index'
 import { SnowFunctionParser } from './parser'
 
-/** Represents a parsed token() CSS function call. */
+/** Represents a parsed --token() CSS function call. */
 export class TokenFunction implements ToCacheKey<Token> {
-  static readonly fn: SnowFunctionName = 'token'
-
   /** CSS function name/type. */
   get name(): SnowFunctionName {
-    return TokenFunction.fn
+    return SnowFunctionName.Token
   }
 
   constructor(

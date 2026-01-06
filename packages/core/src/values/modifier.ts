@@ -1,6 +1,6 @@
 import type { ToCacheKey } from '@/types'
 
-/** Unit conversion modifier for value() function. */
+/** Unit conversion modifier for --value() function. */
 export class UnitModifier implements ToCacheKey {
   constructor(
     /** Unit to convert to. */
@@ -12,7 +12,7 @@ export class UnitModifier implements ToCacheKey {
   }
 }
 
-/** Alpha channel modifier for value() function. */
+/** Alpha channel modifier for --value() function. */
 export class AlphaModifier implements ToCacheKey {
   constructor(
     /** Alpha value as a decimal (e.g., 0.5 for 50%). */
@@ -24,7 +24,7 @@ export class AlphaModifier implements ToCacheKey {
   }
 }
 
-/** Modifier for value() function. */
+/** Modifier for --value() function. */
 export type ValueModifier = UnitModifier | AlphaModifier
 
 /** Context for applying modifiers, contains configuration needed for conversions. */

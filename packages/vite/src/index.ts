@@ -148,7 +148,7 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
           return null
         }
 
-        // Replace token()/value() functions.
+        // Replace --token()/--value() functions.
         let result = snowContext.replace(code, resolved)
 
         // Handle at-rule injection in dev mode. In build mode, this is deferred to generateBundle

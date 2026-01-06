@@ -14,7 +14,7 @@ Snow CSS supports the following config files:
 
 ## Defining design tokens
 
-Snow CSS provides a simple and type-safe way to define design tokens. The following defines a simple configuration for a design system with `color` and `size` token namespaces, which then can be referenced in your CSS using the custom `value()` and `token()` CSS functions.
+Snow CSS provides a simple and type-safe way to define design tokens. The following defines a simple configuration for a design system with `color` and `size` token namespaces, which then can be referenced in your CSS using the custom `--value()` and `--token()` CSS functions.
 
 ```typescript
 import { defineConfig } from '@snowcss/core'
@@ -79,8 +79,8 @@ After that you will be able to use `color` and `size` tokens in your CSS like so
 
 ```css
 .container {
-  padding: token('size.4');
-  background: token('color.gray.300');
+  padding: --token('size.4');
+  background: --token('color.gray.300');
 }
 ```
 
@@ -158,54 +158,54 @@ export default defineConfig({
 
 It is best to use single-word names for your token namespaces, but you are free to use any valid CSS variable identifier. Examples of valid token namespace names:
 
-- `color`, can be referenced as `value('color.gray.300')`
-- `fontSize`, can be referenced as `value('fontSize.md')`
-- `font-size`, can be referenced as `value('font-size.md')`
-- `foo13`, can be referenced as `value('foo13.something')`
+- `color`, can be referenced as `--value('color.gray.300')`
+- `fontSize`, can be referenced as `--value('fontSize.md')`
+- `font-size`, can be referenced as `--value('font-size.md')`
+- `foo13`, can be referenced as `--value('foo13.something')`
 
 The root namespaces are not allowed to start with a number though, because will lead to producing invalid CSS variable names.
 
 ## Referencing design tokens
 
-Snow CSS provides two custom CSS functions: `value()` and `token()`. While both can be used to access the design token's value, they do have different purposes.
+Snow CSS provides two custom CSS functions: `--value()` and `--token()`. While both can be used to access the design token's value, they do have different purposes.
 
-### `value()`
+### `--value()`
 
 The `value` function allows to _inline_ the design token's value, optionally applying simple transformation to it, e.g. converting a `rem` value to `px`, or vice versa; converting color value from one color space to another; and so on.
 
 ```css
 .container {
   /* Inlines the value of the `size.4` design token as is */
-  padding: value('size.4');
+  padding: --value('size.4');
 
   /* Inlines the value of the `size.4` design token, converted to `px` or `rem` */
-  padding: value('size.4' to px);
-  padding: value('size.4' to rem);
+  padding: --value('size.4' to px);
+  padding: --value('size.4' to rem);
 
   /* Inlines the value of the `color.gray.300` design token, with a 50% alpha channel */
-  background: value('color.gray.300' / 50%);
+  background: --value('color.gray.300' / 50%);
 
   /* Can also be used to inline breakpoint value, since var() is not suppored in media queries */
-  @media (min-width: value('breakpoints.sm')) {
+  @media (min-width: --value('breakpoints.sm')) {
     & {
-      padding: value('size.8');
-      background: value('color.gray.400');
+      padding: --value('size.8');
+      background: --value('color.gray.400');
     }
   }
 }
 ```
 
-### `token()`
+### `--token()`
 
-The `token()` function allows you to only _reference_ the design token's value via the generated CSS variable.
+The `--token()` function allows you to only _reference_ the design token's value via the generated CSS variable.
 
 ```css
 .container {
   /* Will be replaced with `var(--size-4)` */
-  padding: token('size.4');
+  padding: --token('size.4');
 
   /* Will be replaced with `var(--color-gray-300)` */
-  background: token('color.gray.300');
+  background: --token('color.gray.300');
 }
 ```
 
