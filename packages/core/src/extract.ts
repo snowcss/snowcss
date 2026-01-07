@@ -57,10 +57,7 @@ function parse(node: FunctionNode, diagnostics: Diagnostics): SnowFunction | nul
     end: node.loc.end.offset,
   }
 
-  const parser =
-    node.name === SnowFunctionName.Value
-      ? new ValueFunctionParser(node, location, diagnostics)
-      : new TokenFunctionParser(node, location, diagnostics)
+  const Parser = node.name === SnowFunctionName.Value ? ValueFunctionParser : TokenFunctionParser
 
-  return parser.parse()
+  return new Parser(node, location, diagnostics).parse()
 }
