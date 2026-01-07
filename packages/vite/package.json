@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "rollup": "catalog:",
     "tsdown": "catalog:",
     "vitest": "catalog:"
   },

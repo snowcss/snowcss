@@ -156,8 +156,8 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         if (inject === 'at-rule' && !isBuild) {
           const isAtRuleFile = atRuleFileId === null || atRuleFileId === id
 
-          // TODO(norskeld): This is far from ideal, instead of this we introduce a new token kind
-          // that will be used to inject the @snowcss; directive.
+          // TODO(norskeld): This is far from ideal, instead of this we need to introduce a new
+          // token kind that will be used to inject the @snowcss; directive.
           if (isAtRuleFile && ATRULE_PATTERN.test(result)) {
             atRuleFileId = id
             ATRULE_PATTERN.lastIndex = 0
