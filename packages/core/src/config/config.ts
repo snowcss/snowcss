@@ -3,7 +3,7 @@ import { Token } from '@/token'
 
 import type { UserConfig, UserTokens } from './user'
 
-export class Config<C extends UserConfig> {
+export class Config<C extends UserConfig = UserConfig> {
   /** Returns all tokens as an array. */
   get tokens(): Array<Token> {
     return Array.from(this.index.values())
