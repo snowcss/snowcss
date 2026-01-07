@@ -2,7 +2,6 @@
 export type {
   InjectType,
   LoadConfigOptions,
-  UnresolvedConfig,
   UserConfig,
   UserTokens,
 } from './config'

@@ -22,9 +22,9 @@ export class Diagnostic {
 export class Diagnostics implements Iterable<Diagnostic> {
   private items: Array<Diagnostic> = []
 
-  /** Returns all collected diagnostic messages. */
-  get all(): Array<Diagnostic> {
-    return this.items
+  /** Returns whether there are any errors in the diagnostics. */
+  get hasErrors(): boolean {
+    return this.errors.length > 0
   }
 
   /** Returns the number of collected diagnostics. */
@@ -32,9 +32,24 @@ export class Diagnostics implements Iterable<Diagnostic> {
     return this.items.length
   }
 
-  /** Returns true if any error-level diagnostics exist. */
-  get hasErrors(): boolean {
-    return this.items.some((it) => it.severity === 'error')
+  /** Returns all collected diagnostic messages. */
+  get all(): Array<Diagnostic> {
+    return this.items
+  }
+
+  /** Returns all diagnostics with severity 'error'. */
+  get errors(): Array<Diagnostic> {
+    return this.items.filter((it) => it.severity === 'error')
+  }
+
+  /** Returns all diagnostics with severity 'warning'. */
+  get warnings(): Array<Diagnostic> {
+    return this.items.filter((it) => it.severity === 'warning')
+  }
+
+  /** Returns all diagnostics with severity 'info'. */
+  get infos(): Array<Diagnostic> {
+    return this.items.filter((it) => it.severity === 'info')
   }
 
   /** Adds a diagnostic with the given severity and input. */

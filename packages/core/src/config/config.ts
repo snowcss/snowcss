@@ -1,26 +1,25 @@
 import type { Path } from '@/path'
 import { Token } from '@/token'
 
-import type { UnresolvedConfig, UserConfig, UserTokens } from './user'
+import type { UserConfig, UserTokens } from './user'
 
-export class Config {
+export class Config<C extends UserConfig> {
   /** Returns all tokens as an array. */
   get tokens(): Array<Token> {
     return Array.from(this.index.values())
   }
 
   constructor(
-    public config: UserConfig,
+    public config: C,
     public path: string,
     private index: Map<string, Token>,
   ) {}
 
-  /** Creates a ready to use config from an unresolved config. */
-  static async create(unresolvedConfig: UnresolvedConfig, configPath: string): Promise<Config> {
-    const config = await unresolvedConfig()
-    const index = Config.createTokenIndex(config)
+  /** Creates a ready to use config from a user config. */
+  static create<C extends UserConfig>(userConfig: C, configPath: string): Config<C> {
+    const index = Config.createTokenIndex(userConfig)
 
-    return new Config(config, configPath, index)
+    return new Config(userConfig, configPath, index)
   }
 
   /** Returns a token by path (if it exists). */

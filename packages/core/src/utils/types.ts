@@ -1,3 +1,8 @@
+import type { SimplifyDeep, UnionToIntersection } from 'type-fest'
+
+/** Given a union type, returns a flattened intersection instead. */
+export type Flatten<T> = SimplifyDeep<UnionToIntersection<T>>
+
 /** A type that can be either a value or a promise of a value. */
 export type MaybePromise<T> = T | Promise<T>
 

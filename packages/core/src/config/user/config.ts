@@ -1,4 +1,4 @@
-import type { MaybePromise } from '@/utils'
+import type { Flatten, MaybePromise } from '@/utils'
 import { merge } from '@/utils'
 
 import type { UserTokens } from './tokens'
@@ -6,9 +6,7 @@ import type { UserTokens } from './tokens'
 /** Specifies how to inject the generated CSS variables. */
 export type InjectType = 'at-rule' | 'asset' | 'inline'
 
-export type UnresolvedConfig = () => Promise<UserConfig>
-
-export interface InputConfig {
+export interface InputConfig<T extends UserTokens = UserTokens> {
   /**
    * Prefix to use for all tokens. If empty or missing, no prefix is used.
    *
@@ -38,40 +36,34 @@ export interface InputConfig {
    * The design tokens. Can be either:
    *
    * - A single, arbitrarily nested object. Useful when you just want to define tokens ad-hoc.
-   * - An array of arbitrarily nested objects. Useful when you extend or want to remap tokens.
+   * - An array of arbitrarily nested objects. Useful when you extend or want to remap different
+   *   sets of tokens.
    *
    * @required
    */
-  tokens: UserTokens | Array<UserTokens>
+  tokens: T | Array<T>
 }
 
-export interface UserConfig extends InputConfig {
+export interface UserConfig<T extends UserTokens = UserTokens> {
+  prefix?: string
   inject: InjectType
   rootFontSize: number
-  /** Merged design tokens. Any overrides are merged into the parent tokens. */
-  tokens: UserTokens
+  tokens: T
 }
 
-export function defineConfig(
-  config: MaybePromise<InputConfig> | (() => MaybePromise<InputConfig>),
-): UnresolvedConfig {
-  return async () => {
-    const inputConfig = await (typeof config === 'function' ? config() : config)
+export async function defineConfig<const T extends UserTokens>(
+  config: MaybePromise<InputConfig<T>> | (() => MaybePromise<InputConfig<T>>),
+): Promise<UserConfig<Flatten<T>>> {
+  const inputConfig = await (typeof config === 'function' ? config() : config)
 
-    return withDefaults(
-      Array.isArray(inputConfig.tokens)
-        ? withDefaults({
-            ...inputConfig,
-            tokens: merge(...inputConfig.tokens),
-          })
-        : withDefaults(inputConfig),
-    )
+  const tokens = Array.isArray(inputConfig.tokens)
+    ? (merge(...inputConfig.tokens) as T)
+    : inputConfig.tokens
+
+  return {
+    prefix: inputConfig.prefix,
+    inject: inputConfig.inject ?? 'asset',
+    rootFontSize: inputConfig.rootFontSize ?? 16,
+    tokens: tokens as Flatten<T>,
   }
-}
-
-function withDefaults(config: InputConfig): UserConfig {
-  config.inject ??= 'asset'
-  config.rootFontSize ??= 16
-
-  return config as UserConfig
 }
