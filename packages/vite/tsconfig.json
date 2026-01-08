@@ -2,5 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": "."
-  }
+  },
+  "include": ["src"],
+  "exclude": ["**/__fixtures__/**"]
 }

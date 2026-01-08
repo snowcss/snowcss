@@ -15,9 +15,6 @@ catalogs:
     tsdown:
       specifier: 0.18.2
       version: 0.18.2
-    typescript:
-      specifier: 5.9.3
-      version: 5.9.3
     vite:
       specifier: 7.3.0
       version: 7.3.0
@@ -33,19 +30,19 @@ importers:
         specifier: 2.3.10
         version: 2.3.10
       '@changesets/changelog-github':
-        specifier: ^0.5.2
+        specifier: 0.5.2
         version: 0.5.2
       '@changesets/cli':
-        specifier: ^2.29.8
+        specifier: 2.29.8
         version: 2.29.8(@types/node@24.10.4)
       lefthook:
-        specifier: ^2.0.12
+        specifier: 2.0.12
         version: 2.0.12
       typescript:
-        specifier: 'catalog:'
+        specifier: 5.9.3
         version: 5.9.3
 
-  apps/sample:
+  apps/playground:
     dependencies:
       vue:
         specifier: ^3.5.24

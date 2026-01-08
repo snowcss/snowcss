@@ -35,10 +35,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: pnpm -r build
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
 
       - name: Test
-        run: pnpm -r test
+        run: pnpm test
 
       - name: Lint
         run: pnpm biome check .

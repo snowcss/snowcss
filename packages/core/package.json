@@ -45,7 +45,8 @@
     "build": "tsdown",
     "build:watch": "tsdown --watch",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@fastify/deepmerge": "^3.1.0",
