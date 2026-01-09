@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "includes": ["**", "!dist", "!**/dist", "!**/*.local.json"]
+    "includes": ["**", "!dist", "!**/dist", "!**/*.local.json", "!**/*.vue"]
   },
   "assist": {
     "actions": {
@@ -31,11 +31,29 @@
   },
   "linter": {
     "rules": {
+      "complexity": {
+        "noCommaOperator": "off"
+      },
       "style": {
+        "useImportType": {
+          "level": "on",
+          "options": {
+            "style": "separatedType"
+          }
+        },
         "useConsistentArrayType": {
           "level": "on",
           "options": {
             "syntax": "generic"
+          }
+        },
+        "useTemplate": "off"
+      },
+      "suspicious": {
+        "noUnknownAtRules": {
+          "level": "on",
+          "options": {
+            "ignore": ["snowcss"]
           }
         }
       }

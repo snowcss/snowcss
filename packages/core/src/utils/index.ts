@@ -1,5 +1,5 @@
-export * from './arrays'
+export * from './hash'
 export * from './merge'
-export * from './numbers'
 export * from './strings'
+export * from './types'
 export * from './utils'

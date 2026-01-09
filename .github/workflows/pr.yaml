@@ -11,18 +11,46 @@ jobs:
   title:
     name: Validate PR Title
     runs-on: ubuntu-latest
-
     steps:
       - name: Validate PR title
-        uses: amannn/action-semantic-pull-request@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@v7
         with:
-          types: |
-            *
-            core
-            vite
-            lsp
-            vscode
-          requireScope: false
+          script: |
+            const title = context.payload.pull_request.title
+            const validScopes = ['*', 'core', 'vite', 'lsp', 'vscode', 'snowcss']
+            const separator = ':'
 
+            const index = title.indexOf(separator)
+
+            if (index === -1) {
+              core.setFailed(
+                `Invalid PR title format: ${title}\n\n` +
+                `Expected format: <scope>[,<scope>...]: <message>\n` +
+                `Valid scopes: ${validScopes.join(', ')}`
+              )
+              return
+            }
+
+            const scopesPart = title.slice(0, index).trim()
+            const message = title.slice(index + separator.length).trim()
+
+            if (!scopesPart || !message) {
+              core.setFailed(
+                `PR title must have both scope(s) and message.\n\n` +
+                `Expected format: <scope>[,<scope>...]: <message>`
+              )
+              return
+            }
+
+            const scopes = scopesPart.split(',').map((s) => s.trim())
+            const invalidScopes = scopes.filter((s) => !validScopes.includes(s))
+
+            if (invalidScopes.length > 0) {
+              core.setFailed(
+                `Invalid scope(s): ${invalidScopes.join(', ')}\n\n` +
+                `Valid scopes: ${validScopes.join(', ')}`
+              )
+              return
+            }
+
+            console.log('PR title is valid')

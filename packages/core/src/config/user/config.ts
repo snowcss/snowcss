@@ -1,14 +1,12 @@
-import type { MaybePromise } from '@/types'
-import { merge } from '@/utils'
+import type { Flatten, MaybePromise } from '#utils'
+import { merge } from '#utils'
 
 import type { UserTokens } from './tokens'
 
 /** Specifies how to inject the generated CSS variables. */
 export type InjectType = 'at-rule' | 'asset' | 'inline'
 
-export type UnresolvedConfig = () => Promise<UserConfig>
-
-export interface InputConfig {
+export interface InputConfig<T extends UserTokens = UserTokens> {
   /**
    * Prefix to use for all tokens. If empty or missing, no prefix is used.
    *
@@ -23,9 +21,9 @@ export interface InputConfig {
    * - `asset`: emit as CSS asset that will be referenced in the `index.html`.
    * - `inline`: emit as inline `<style>` tag that will be injected into the `index.html`.
    *
-   * @default 'at-rule'
+   * @default 'asset'
    */
-  inject?: 'at-rule' | 'asset' | 'inline'
+  inject?: InjectType
 
   /**
    * Root font size in pixels for rem/px conversion.
@@ -38,31 +36,34 @@ export interface InputConfig {
    * The design tokens. Can be either:
    *
    * - A single, arbitrarily nested object. Useful when you just want to define tokens ad-hoc.
-   * - An array of arbitrarily nested objects. Useful when you extend or want to remap tokens.
+   * - An array of arbitrarily nested objects. Useful when you extend or want to remap different
+   *   sets of tokens.
    *
    * @required
    */
-  tokens: UserTokens | Array<UserTokens>
+  tokens: T | Array<T>
 }
 
-export interface UserConfig extends InputConfig {
-  /** Merged design tokens. Any overrides are merged into the parent tokens. */
-  tokens: UserTokens
+export interface UserConfig<T extends UserTokens = UserTokens> {
+  prefix?: string
+  inject: InjectType
+  rootFontSize: number
+  tokens: T
 }
 
-export function defineConfig(
-  config: MaybePromise<InputConfig> | (() => MaybePromise<InputConfig>),
-): UnresolvedConfig {
-  return async () => {
-    const inputConfig = await (typeof config === 'function' ? config() : config)
+export async function defineConfig<const T extends UserTokens>(
+  config: MaybePromise<InputConfig<T>> | (() => MaybePromise<InputConfig<T>>),
+): Promise<UserConfig<Flatten<T>>> {
+  const inputConfig = await (typeof config === 'function' ? config() : config)
 
-    if (Array.isArray(inputConfig.tokens)) {
-      return {
-        ...inputConfig,
-        tokens: merge(...inputConfig.tokens),
-      }
-    }
+  const tokens = Array.isArray(inputConfig.tokens)
+    ? (merge(...inputConfig.tokens) as T)
+    : inputConfig.tokens
 
-    return inputConfig
+  return {
+    prefix: inputConfig.prefix,
+    inject: inputConfig.inject ?? 'asset',
+    rootFontSize: inputConfig.rootFontSize ?? 16,
+    tokens: tokens as Flatten<T>,
   }
 }

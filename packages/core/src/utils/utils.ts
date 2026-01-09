@@ -1,4 +1,5 @@
-import { type InspectOptions, inspect as inspectUnconfigured } from 'node:util'
+import type { InspectOptions } from 'node:util'
+import { inspect as inspectUnconfigured } from 'node:util'
 
 /** Executes and times a function and returns the result and the duration in milliseconds. */
 export async function timed<T>(fn: () => T | Promise<T>): Promise<[result: T, duration: number]> {

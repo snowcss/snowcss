@@ -2,6 +2,10 @@
 
 <!-- What does this PR do and why? -->
 
+## Related issues
+
+<!-- Link related issues here. -->
+
 ## Checklist
 
 - [ ] Added changeset (if user-facing change)

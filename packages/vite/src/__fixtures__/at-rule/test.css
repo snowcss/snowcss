@@ -1,0 +1,6 @@
+.container {
+  color: --token("color.primary");
+  background: --value("color.secondary");
+  padding: --value("size.4");
+  margin: --value("size.16" to rem);
+}

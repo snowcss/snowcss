@@ -1,54 +1,54 @@
-import { Token } from '@/token'
+import type { Path } from '#path'
+import { Token } from '#token'
 
-import type { UnresolvedConfig, UserConfig, UserTokens } from './user'
+import type { UserConfig, UserTokens } from './user'
 
-export class Config {
-  public path: string
-  public config: UserConfig
-  public tokens: Array<Token> = []
-
-  constructor(options: { config: UserConfig; configPath: string; tokens: Array<Token> }) {
-    this.path = options.configPath
-    this.config = options.config
-    this.tokens = options.tokens
+export class Config<C extends UserConfig = UserConfig> {
+  /** Returns all tokens as an array. */
+  get tokens(): Array<Token> {
+    return Array.from(this.index.values())
   }
 
-  /** Creates a ready to use config from an unresolved config. */
-  public static async create(options: {
-    config: UnresolvedConfig
-    configPath: string
-  }): Promise<Config> {
-    const config = await options.config()
+  constructor(
+    public config: C,
+    public path: string,
+    private index: Map<string, Token>,
+  ) {}
 
-    return new Config({
-      config,
-      configPath: options.configPath,
-      tokens: Config.createTokensFromConfig(config),
-    })
+  /** Creates a ready to use config from a user config. */
+  static create<C extends UserConfig>(userConfig: C, configPath: string): Config<C> {
+    const index = Config.createTokenIndex(userConfig)
+
+    return new Config(userConfig, configPath, index)
   }
 
-  /** Creates tokens from a user config. */
-  private static createTokensFromConfig(userConfig: UserConfig): Array<Token> {
+  /** Returns a token by path (if it exists). */
+  getByPath(path: Path): Token | null {
+    return this.index.get(path.toDotPath()) ?? null
+  }
+
+  /** Creates token index from a user config for constant lookups. */
+  private static createTokenIndex(userConfig: UserConfig): Map<string, Token> {
     interface StackItem {
       tokens: UserTokens
       head: Array<string>
     }
 
     const stack: Array<StackItem> = [{ tokens: userConfig.tokens, head: [] }]
-    const result: Array<Token> = []
+    const index: Map<string, Token> = new Map()
 
     while (stack.length > 0) {
       // biome-ignore lint/style/noNonNullAssertion: This pop() is safe and will never boom().
-      const { tokens, head } = stack.pop()!
+      const { tokens: userTokens, head } = stack.pop()!
 
-      for (const [key, value] of Object.entries(tokens)) {
+      for (const [key, value] of Object.entries(userTokens)) {
         const nextHead = [...head, key]
 
         if (typeof value === 'string') {
           const name = userConfig.prefix ? [userConfig.prefix, ...nextHead] : nextHead
           const token = Token.from(name, value)
 
-          result.push(token)
+          index.set(nextHead.join('.'), token)
         } else {
           stack.push({
             tokens: value,
@@ -58,6 +58,6 @@ export class Config {
       }
     }
 
-    return result
+    return index
   }
 }

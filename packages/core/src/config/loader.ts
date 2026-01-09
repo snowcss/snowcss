@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { createJiti } from 'jiti'
 
 import { Config } from './config'
-import type { UnresolvedConfig } from './user'
+import type { UserConfig } from './user'
 
 export interface LoadConfigOptions {
   /** The root directory. */
@@ -52,14 +52,11 @@ export async function loadConfig(options: LoadConfigOptions): Promise<Config> {
   }
 
   try {
-    const config = await jiti.import<UnresolvedConfig>(configPath, {
+    const config = await jiti.import<UserConfig>(configPath, {
       default: true,
     })
 
-    return await Config.create({
-      config,
-      configPath,
-    })
+    return Config.create(config, configPath)
   } catch (error) {
     throw new Error(`Failed to load Snow config: ${error}`)
   }

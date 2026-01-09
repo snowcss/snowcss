@@ -1,0 +1,70 @@
+{
+  "name": "@snowcss/vite",
+  "version": "0.1.0",
+  "description": "Snow CSS vite plugin",
+  "author": "Vladislav Mamon <hello@nrsk.dev>",
+  "maintainers": [
+    "Vladislav Mamon <hello@nrsk.dev>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snowcss/snowcss.git",
+    "directory": "packages/vite"
+  },
+  "keywords": [
+    "design systems",
+    "design tokens",
+    "typescript",
+    "css",
+    "vite"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "provenance": true,
+    "access": "public",
+    "exports": {
+      ".": {
+        "import": {
+          "types": "./dist/index.d.mts",
+          "default": "./dist/index.mjs"
+        },
+        "require": {
+          "types": "./dist/index.d.cts",
+          "default": "./dist/index.cjs"
+        }
+      },
+      "./package.json": "./package.json"
+    }
+  },
+  "imports": {
+    "#*": [
+      "./src/*",
+      "./src/*.ts",
+      "./src/*/index.ts"
+    ]
+  },
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@snowcss/core": "workspace:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "rollup": "catalog:",
+    "tsdown": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "vite": "^7.0.0"
+  }
+}

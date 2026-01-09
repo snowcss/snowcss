@@ -1,138 +1,147 @@
-import { type SnowFunction, TokenFunction, type ValueModifier } from '@/collector'
-import type { Config } from '@/config'
-import type { Path } from '@/path'
-import type { Token } from '@/token'
-import { AbsoluteValue, ColorValue, RelativeValue, type TokenValue } from '@/token'
+import type { Config } from './config'
+import type { WithDiagnostics } from './diagnostics'
+import { Diagnostics } from './diagnostics'
+import type { SnowFunction } from './functions'
+import { SnowFunctionName, TokenFunction, ValueFunction } from './functions'
+import type { Path } from './path'
+import type { Token } from './token'
+import type { Location } from './types'
+import type { ModifyContext, TokenValue } from './values'
 
 /** Resolved token with original values and resolved CSS output. */
 export class ResolvedToken {
   constructor(
+    /** Snow function associated with this token. */
+    readonly name: SnowFunctionName,
     /** Original token path. */
-    public readonly path: Path,
+    readonly path: Path,
     /** Original parsed values. */
-    public readonly values: Array<TokenValue>,
+    readonly values: Array<TokenValue>,
     /** Final CSS values after modifier application. */
-    public readonly resolved: Array<string>,
+    readonly resolved: Array<string>,
+    /** Location of the associated function call in the source CSS. */
+    readonly location: Location,
   ) {}
-}
 
-/** Result of resolving functions against tokens. */
-export interface ResolverResult {
-  resolved: Array<ResolvedToken>
-  unresolved: Array<SnowFunction>
-}
-
-/** Resolves extracted CSS functions against config tokens. */
-export class Resolver {
-  constructor(private config: Config) {}
-
-  public load(config: Config): void {
-    this.config = config
+  /** Returns true if this is a token function. */
+  get isToken(): boolean {
+    return this.name === SnowFunctionName.Token
   }
 
-  /** Resolves functions against tokens, returning matched and unmatched results. */
-  public resolve(functions: Array<SnowFunction>): ResolverResult {
-    const resolved: Array<ResolvedToken> = []
-    const unresolved: Array<SnowFunction> = []
+  /** Returns true if this is a value function. */
+  get isValue(): boolean {
+    return this.name === SnowFunctionName.Value
+  }
 
-    for (const fn of functions) {
-      const token = this.findToken(fn.path)
+  /** Returns either a CSS variable reference or a resolved CSS value. */
+  toCss(): string {
+    return this.name === SnowFunctionName.Token ? this.path.toCssVarRef() : this.resolved.join(' ')
+  }
 
-      if (!token) {
-        unresolved.push(fn)
-        continue
-      }
+  /** Returns a resolved CSS value regardless of the function name/type. */
+  toCssValue(): string {
+    return this.resolved.join(' ')
+  }
+}
 
-      const resolvedValues = this.resolveValues(token, fn)
-      const resolvedToken = new ResolvedToken(token.path, token.values, resolvedValues)
+/** Resolves functions against tokens from a given config, emitting diagnostics if any. */
+export function resolve(
+  config: Config,
+  functions: Array<SnowFunction>,
+): WithDiagnostics<Array<ResolvedToken>> {
+  const diagnostics = new Diagnostics()
+  const resolved: Array<ResolvedToken> = []
+
+  for (const fn of functions) {
+    const token = config.getByPath(fn.path)
+
+    if (token) {
+      const resolvedToken = resolveToken(config, token, fn, diagnostics)
 
       resolved.push(resolvedToken)
+    } else {
+      diagnostics.warning({
+        message: `token '${fn.path.toDotPath()}' not found`,
+        context: 'resolver',
+      })
     }
-
-    return { resolved, unresolved }
   }
 
-  /** Finds a token matching the function path, accounting for prefix. */
-  private findToken(functionPath: Path): Token | null {
-    return this.config?.tokens.find((token) => this.matchPaths(token.path, functionPath)) ?? null
+  return [resolved, diagnostics]
+}
+
+/** Resolves all tokens as if they were referenced in the CSS using the token() function. */
+export function resolveAll(config: Config): Array<ResolvedToken> {
+  const diagnostics = new Diagnostics()
+  const resolved: Array<ResolvedToken> = []
+
+  for (const token of config.tokens) {
+    const fn = createVirtualFunction(token)
+    const resolvedToken = resolveToken(config, token, fn, diagnostics)
+
+    resolved.push(resolvedToken)
   }
 
-  /** Compares token path (with potential prefix) to function path (without prefix). */
-  private matchPaths(tokenPath: Path, functionPath: Path): boolean {
-    const tokenSegments = this.config?.config.prefix
-      ? tokenPath.segments.slice(1)
-      : tokenPath.segments
+  return resolved
+}
 
-    return tokenSegments.join('.') === functionPath.segments.join('.')
+/** Resolves a token from a matching token and function call and caches the result. */
+function resolveToken(
+  config: Config,
+  token: Token,
+  fn: SnowFunction,
+  diagnostics: Diagnostics,
+): ResolvedToken {
+  const values = resolveValues(config, token, fn, diagnostics)
+  const resolved = new ResolvedToken(fn.name, token.path, token.values, values, fn.location)
+
+  return resolved
+}
+
+/** Creates the modify context from config. */
+function createModifyContext(config: Config): ModifyContext {
+  return {
+    rootFontSize: config.config.rootFontSize ?? 16,
+  }
+}
+
+/** Creates a virtual function for a token, used to resolve token values without usage context. */
+function createVirtualFunction(token: Token): SnowFunction {
+  return new ValueFunction(token.path, null, {
+    start: 0,
+    end: 0,
+  })
+}
+
+/** Resolves token values, applying modifier if applicable. */
+function resolveValues(
+  config: Config,
+  token: Token,
+  fn: SnowFunction,
+  diagnostics: Diagnostics,
+): Array<string> {
+  // TokenFunction has no modifier, always return raw value.
+  if (fn instanceof TokenFunction) {
+    return [token.raw]
   }
 
-  /** Resolves token values, applying modifier if applicable. */
-  private resolveValues(token: Token, fn: SnowFunction): Array<string> {
-    // TokenFunction has no modifier, always return raw value.
-    if (fn instanceof TokenFunction) {
-      return [token.raw]
-    }
-
-    // ValueFunction with no modifier, return raw value.
-    if (!fn.modifier) {
-      return [token.raw]
-    }
-
-    // Only apply modifiers to tokens with exactly one value.
-    if (token.values.length !== 1) {
-      return [token.raw]
-    }
-
-    const value = token.values[0]
-    const resolved = this.applyModifier(value, fn.modifier)
-
-    return [resolved ?? token.raw]
+  // ValueFunction with no modifier, return raw value.
+  if (!fn.modifier) {
+    return [token.raw]
   }
 
-  /** Applies a modifier to a token value, returning the CSS string or null if unsupported. */
-  private applyModifier(value: TokenValue, modifier: ValueModifier): string | null {
-    if (modifier.type === 'alpha') {
-      return this.applyAlphaModifier(value, modifier.value)
-    }
+  // Only apply modifiers to tokens with exactly one value.
+  if (token.values.length !== 1) {
+    diagnostics.warning({
+      message: `cannot apply modifier to multi-value token '${token.path.toDotPath()}'`,
+      context: 'resolver',
+    })
 
-    if (modifier.type === 'unit') {
-      return this.applyUnitModifier(value, modifier.unit)
-    }
-
-    return null
+    return [token.raw]
   }
 
-  /** Applies alpha modifier to a color value. */
-  private applyAlphaModifier(value: TokenValue, alpha: number): string | null {
-    if (!(value instanceof ColorValue)) {
-      return null
-    }
+  const [value] = token.values
+  const ctx = createModifyContext(config)
 
-    return value.modify({ alpha }).toCss()
-  }
-
-  /** Applies unit modifier to a relative value. */
-  private applyUnitModifier(value: TokenValue, unit: 'px' | 'rem'): string | null {
-    if (!(value instanceof RelativeValue) && !(value instanceof AbsoluteValue)) {
-      return null
-    }
-
-    const rootFontSize = this.config.config.rootFontSize ?? 16
-
-    if (unit === 'px') {
-      return `${value.parsed * rootFontSize}px`
-    }
-
-    if (unit === 'rem') {
-      // Already rem, return as-is.
-      if (value.unit === 'rem') {
-        return `${value.parsed}rem`
-      }
-
-      // Convert from other root-relative units to rem.
-      return `${value.parsed / rootFontSize}rem`
-    }
-
-    return null
-  }
+  return [value.apply(fn.modifier, ctx) ?? token.raw]
 }

@@ -1,21 +1,19 @@
 {
   "compilerOptions": {
-    "outDir": "${configDir}/dist",
-    "composite": true,
-    "incremental": true,
+    "allowImportingTsExtensions": true,
     "declaration": true,
     "declarationMap": true,
-    "customConditions": ["snowcss"],
-
-    "strict": true,
-    "allowJs": true,
-    "target": "esnext",
-    "module": "preserve",
+    "emitDeclarationOnly": true,
+    "isolatedDeclarations": true,
+    "esModuleInterop": true,
+    "lib": ["esnext", "dom"],
+    "module": "esnext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
-    "verbatimModuleSyntax": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "outDir": "${configDir}/dist",
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "esnext"
   },
   "exclude": ["${configDir}/dist"]
 }

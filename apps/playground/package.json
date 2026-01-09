@@ -1,0 +1,25 @@
+{
+  "name": "playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm x dev",
+    "build": "vue-tsc -b && pnpm x build",
+    "preview": "pnpm x preview",
+    "x": "tsx ./node_modules/vite/bin/vite.js"
+  },
+  "dependencies": {
+    "vue": "^3.5.24"
+  },
+  "devDependencies": {
+    "@snowcss/core": "workspace:",
+    "@snowcss/vite": "workspace:",
+    "@types/node": "^24.10.1",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
+    "tsx": "4.21.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4",
+    "vue-tsc": "^3.1.4"
+  }
+}
