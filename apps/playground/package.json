@@ -12,7 +12,7 @@
     "vue": "^3.5.24"
   },
   "devDependencies": {
-    "@snowcss/core": "workspace:",
+    "@snowcss/internal": "workspace:",
     "@snowcss/vite": "workspace:",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",

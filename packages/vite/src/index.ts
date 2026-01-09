@@ -1,4 +1,4 @@
-import type { Diagnostics } from '@snowcss/core'
+import type { Diagnostics } from '@snowcss/internal'
 import type { PluginContext, TransformPluginContext } from 'rollup'
 import type { HtmlTagDescriptor, Plugin } from 'vite'
 

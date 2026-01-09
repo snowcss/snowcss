@@ -56,7 +56,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@snowcss/core": "workspace:"
+    "@snowcss/internal": "workspace:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

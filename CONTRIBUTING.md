@@ -18,16 +18,16 @@ pnpm install
 pnpm -r build
 
 # Build specific package
-pnpm --filter @snowcss/core build
+pnpm --filter @snowcss/internal build
 
 # Build in watch mode
-pnpm --filter @snowcss/core build:watch
+pnpm --filter @snowcss/internal build:watch
 
 # Run tests
-pnpm --filter @snowcss/core test
+pnpm --filter @snowcss/internal test
 
 # Run tests in watch mode
-pnpm --filter @snowcss/core test:watch
+pnpm --filter @snowcss/internal test:watch
 ```
 
 ## Code Style

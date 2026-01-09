@@ -5,8 +5,8 @@ import type {
   ResolvedToken,
   SnowAtRule,
   WithDiagnostics,
-} from '@snowcss/core'
-import { emit, extract, extractAtRule, loadConfig, resolve, resolveAll } from '@snowcss/core'
+} from '@snowcss/internal'
+import { emit, extract, extractAtRule, loadConfig, resolve, resolveAll } from '@snowcss/internal'
 
 interface CreateContextOptions extends LoadConfigOptions {}
 

@@ -1,5 +1,5 @@
-import type { UserConfig } from '@snowcss/core'
-import { defineConfig } from '@snowcss/core'
+import type { UserConfig } from '@snowcss/internal'
+import { defineConfig } from '@snowcss/internal'
 
 const config: UserConfig = await defineConfig({
   inject: 'at-rule',

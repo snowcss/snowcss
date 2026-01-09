@@ -17,7 +17,7 @@ Snow CSS supports the following config files:
 Snow CSS provides a simple and type-safe way to define design tokens. The following defines a simple configuration for a design system with `color` and `size` token namespaces, which then can be referenced in your CSS using the custom `--value()` and `--token()` CSS functions.
 
 ```typescript
-import { defineConfig } from '@snowcss/core'
+import { defineConfig } from '@snowcss/internal'
 
 export default defineConfig({
   tokens: {
@@ -43,7 +43,7 @@ export default defineConfig({
 To share and reuse you design tokens, you can create a TypeScript library `@acme/design`, define your design tokens using the `defineTokens` helper and export them:
 
 ```typescript
-import { defineTokens } from '@snowcss/core'
+import { defineTokens } from '@snowcss/internal'
 
 export const color = defineTokens({
   gray: {
@@ -64,7 +64,7 @@ export const size = defineTokens({
 Now, to be able to use these tokens in your app or library styles, you need to import them in your `snow.config.ts`:
 
 ```typescript
-import { defineConfig } from '@snowcss/core'
+import { defineConfig } from '@snowcss/internal'
 import { color, size } from '@acme/design'
 
 export default defineConfig({
@@ -108,7 +108,7 @@ You can use the `extend` method to extend existing namespaces or override token 
 In the example below, we extend the `color` tokens with a new ones (`gray.600` and `gray.700`) and override the `gray.500` value to be `#818181`, plus we add a new `blue` namespace:
 
 ```typescript
-import { defineConfig } from '@snowcss/core'
+import { defineConfig } from '@snowcss/internal'
 import { color, size } from '@acme/design'
 
 export default defineConfig({
@@ -135,7 +135,7 @@ You can completely change the structure of the token namespace by using the `map
 In the rather contrived example below, we remap the `size` namespace so that the original tokens go in the `deprecated` namespace, and extend it with the `current` namespace:
 
 ```typescript
-import { defineConfig } from '@snowcss/core'
+import { defineConfig } from '@snowcss/internal'
 import { color, size } from '@acme/design'
 
 export default defineConfig({
@@ -220,7 +220,7 @@ Snow CSS supports the following options for injecting or emitting generated CSS 
 You can specify where to inject the generated CSS variables via the `inject` option in `snow.config.ts`:
 
 ```ts
-import { defineConfig } from '@snowcss/core'
+import { defineConfig } from '@snowcss/internal'
 
 export default defineConfig({
   prefix: 'app',
