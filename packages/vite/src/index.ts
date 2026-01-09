@@ -1,6 +1,6 @@
 import type { HtmlTagDescriptor, Plugin } from 'vite'
 
-import { VIRTUAL_MODULE_ID, VIRTUAL_MODULE_ID_RESOLVED } from './constants'
+import { VIRTUAL_CSS_ID, VIRTUAL_CSS_ID_RESOLVED } from './constants'
 import { Context } from './context'
 import { serveVirtualCss } from './middlewares'
 
@@ -70,7 +70,7 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
 
       // If serving (dev mode), link to virtual module.
       if (!isBuild) {
-        return createAssetLink('/' + VIRTUAL_MODULE_ID)
+        return createAssetLink('/' + VIRTUAL_CSS_ID)
       }
     }
 
@@ -110,13 +110,13 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
     },
 
     resolveId(id) {
-      if (id === VIRTUAL_MODULE_ID) {
-        return VIRTUAL_MODULE_ID_RESOLVED
+      if (id === VIRTUAL_CSS_ID) {
+        return VIRTUAL_CSS_ID_RESOLVED
       }
     },
 
     load(id) {
-      if (id === VIRTUAL_MODULE_ID_RESOLVED) {
+      if (id === VIRTUAL_CSS_ID_RESOLVED) {
         const css = snowContext.emitAllCss({
           minify: false,
         })
