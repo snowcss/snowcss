@@ -3,7 +3,7 @@ import type { Token } from '#token'
 import type { Location, ToCacheKey } from '#types'
 import { hash } from '#utils'
 import type { ValueModifier } from '#values'
-import { AlphaModifier, UnitModifier } from '#values'
+import { AlphaModifier, NegateModifier, UnitModifier } from '#values'
 
 import type { SnowFunction } from './index'
 import { SnowFunctionName } from './index'
@@ -54,6 +54,9 @@ export class ValueFunctionParser extends SnowFunctionParser {
 
     // Handle `to <unit>` modifier.
     if (op.type === 'Identifier' && op.name === 'to') return this.unitModifier()
+
+    // Handle `negate` modifier.
+    if (op.type === 'Identifier' && op.name === 'negate') return new NegateModifier()
 
     // Handle `/ <percentage>` modifier.
     if (op.type === 'Operator' && op.value === '/') return this.alphaModifier()

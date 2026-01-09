@@ -24,8 +24,15 @@ export class AlphaModifier implements ToCacheKey {
   }
 }
 
+/** Negate modifier for --value() function. */
+export class NegateModifier implements ToCacheKey {
+  toCacheKey(): string {
+    return 'negate'
+  }
+}
+
 /** Modifier for --value() function. */
-export type ValueModifier = UnitModifier | AlphaModifier
+export type ValueModifier = UnitModifier | AlphaModifier | NegateModifier
 
 /** Context for applying modifiers, contains configuration needed for conversions. */
 export interface ModifyContext {

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { Diagnostics } from '#diagnostics'
 import { Path } from '#path'
 import { Token } from '#token'
-import { AlphaModifier, UnitModifier } from '#values'
+import { AlphaModifier, NegateModifier, UnitModifier } from '#values'
 
 import { SnowFunctionName } from './index'
 import { ValueFunction, ValueFunctionParser } from './value'
@@ -158,6 +158,20 @@ describe('ValueFunctionParser', () => {
       const result = parser.parse()
       expect(result).toBeNull()
       expect(diagnostics.hasErrors).toBe(true)
+    })
+
+    it('parses --value("path" negate) with negate modifier', () => {
+      const diagnostics = new Diagnostics()
+      const node = createFunctionNode([
+        { type: 'String', value: 'size.4' } as CssNode,
+        { type: 'Identifier', name: 'negate' } as CssNode,
+      ])
+      const parser = new ValueFunctionParser(node, { start: 0, end: 30 }, diagnostics)
+      const result = parser.parse()
+      expect(result).toBeInstanceOf(ValueFunction)
+      const fn = result as ValueFunction
+      expect(fn.modifier).toBeInstanceOf(NegateModifier)
+      expect(diagnostics.hasErrors).toBe(false)
     })
   })
 })

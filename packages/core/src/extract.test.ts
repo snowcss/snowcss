@@ -89,6 +89,14 @@ describe('extract', () => {
     expect(functions[0].path.segments).toEqual(['size', '0.5'])
   })
 
+  it('extracts --value() with negate modifier', () => {
+    const css = '.test { margin-top: --value("size.4" negate); }'
+    const [functions] = extract(css)
+    expect(functions).toHaveLength(1)
+    const fn = functions[0] as ValueFunction
+    expect(fn.modifier).not.toBeNull()
+  })
+
   describe('negative scenarios', () => {
     it('returns empty array for empty input', () => {
       const [functions, diagnostics] = extract('')

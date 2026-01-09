@@ -81,6 +81,24 @@ describe('resolve', () => {
     expect(resolved[0].toCss()).toBe('1px 2px 3px 4px')
     expect(diagnostics.size).toBeGreaterThan(0)
   })
+
+  it('resolves ValueFunction with negate modifier (rem)', async () => {
+    const config = await createConfig({ size: { '4': '1rem' } })
+    const css = '.test { margin-top: --value("size.4" negate); }'
+    const [functions] = extract(css)
+    const [resolved] = resolve(config, functions)
+    expect(resolved).toHaveLength(1)
+    expect(resolved[0].toCss()).toBe('-1rem')
+  })
+
+  it('resolves ValueFunction with negate modifier (px)', async () => {
+    const config = await createConfig({ size: { '4': '16px' } })
+    const css = '.test { margin-top: --value("size.4" negate); }'
+    const [functions] = extract(css)
+    const [resolved] = resolve(config, functions)
+    expect(resolved).toHaveLength(1)
+    expect(resolved[0].toCss()).toBe('-16px')
+  })
 })
 
 describe('resolveAll', () => {

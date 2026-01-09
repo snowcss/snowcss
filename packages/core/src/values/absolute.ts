@@ -1,6 +1,6 @@
 import type { TokenValue, TokenValueInput, TokenValueParser } from './index'
 import type { Modifiable, ModifyContext, ValueModifier } from './modifier'
-import { UnitModifier } from './modifier'
+import { NegateModifier, UnitModifier } from './modifier'
 
 /** Represents a value in px units. */
 export class PxValue implements Modifiable {
@@ -23,6 +23,10 @@ export class PxValue implements Modifiable {
       if (modifier.unit === 'rem') {
         return `${this.parsed / ctx.rootFontSize}rem`
       }
+    }
+
+    if (modifier instanceof NegateModifier) {
+      return `${-this.parsed}px`
     }
 
     return null
