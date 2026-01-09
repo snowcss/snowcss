@@ -1,6 +1,6 @@
 {
   "name": "@snowcss/vite",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Snow CSS vite plugin",
   "author": "Vladislav Mamon <hello@nrsk.dev>",
   "maintainers": [
