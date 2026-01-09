@@ -83,4 +83,42 @@ describe('emit', () => {
     const css = emit(resolved)
     expect(css).toContain('--size-0\\.5')
   })
+
+  it('non-minified output uses 2-space indent and newlines', async () => {
+    const config = await createConfig({
+      a: '1',
+      b: '2',
+    })
+    const resolved = resolveAll(config)
+    const css = emit(resolved)
+    expect(css).toContain('\n')
+    expect(css).toMatch(/^:root \{\n/)
+    expect(css).toMatch(/\n\}$/)
+    expect(css).toMatch(/\n {2}--/)
+  })
+
+  it('minified output has no spaces around colons', async () => {
+    const config = await createConfig({
+      color: '#fff',
+    })
+    const resolved = resolveAll(config)
+    const css = emit(resolved, { minify: true })
+    expect(css).toMatch(/--color:#fff;/)
+    expect(css).not.toMatch(/--color: /)
+  })
+
+  it('handles deeply nested tokens', async () => {
+    const config = await createConfig({
+      theme: {
+        colors: {
+          brand: {
+            primary: '#ff0000',
+          },
+        },
+      },
+    })
+    const resolved = resolveAll(config)
+    const css = emit(resolved)
+    expect(css).toContain('--theme-colors-brand-primary')
+  })
 })
