@@ -234,6 +234,14 @@ describe('extract', () => {
       expect(diagnostics.hasErrors).toBe(true)
       expect(diagnostics.errors).toHaveLength(3)
     })
+
+    it('emits diagnostic when --token() has trailing content', () => {
+      const css = '.test { color: --token("colors.primary" / 50%); }'
+      const [functions, diagnostics] = extract(css)
+      expect(functions).toHaveLength(0)
+      expect(diagnostics.hasErrors).toBe(true)
+      expect(diagnostics.errors[0].message).toContain('--token() does not support modifiers')
+    })
   })
 
   describe('custom property values', () => {

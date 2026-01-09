@@ -34,6 +34,13 @@ export class TokenFunctionParser extends SnowFunctionParser {
       return null
     }
 
+    // Check for unexpected trailing content.
+    const trailing = this.advance()
+
+    if (trailing) {
+      return this.error('--token() does not support modifiers')
+    }
+
     return new TokenFunction(path, this.location)
   }
 }
