@@ -1,4 +1,4 @@
-import type { FunctionNode } from 'css-tree'
+import type { CssNode, FunctionNode, Raw } from 'css-tree'
 import { parse as parseCssTree, walk as walkCssTree } from 'css-tree'
 
 import type { WithDiagnostics } from './diagnostics'
@@ -37,12 +37,58 @@ export function extract(input: string): WithDiagnostics<Array<SnowFunction>> {
         functions.push(parsed)
       }
     }
+
+    // Handle Raw nodes inside custom property declarations. css-tree parses custom property
+    // values as Raw nodes, so we need to re-parse them to find Snow functions.
+    if (node.type === 'Raw' && FUNCTION_NAMES.some((name) => name === node.value)) {
+      const extracted = extractFromRaw(node, diagnostics)
+      functions.push(...extracted)
+    }
   })
 
   return [functions, diagnostics]
 }
 
+/** Extracts Snow functions from a Raw node by re-parsing its value. */
+function extractFromRaw(raw: Raw, diagnostics: Diagnostics): Array<SnowFunction> {
+  const functions: Array<SnowFunction> = []
+
+  if (!raw.loc) {
+    return functions
+  }
+
+  // Re-parse the raw value as a CSS value to discover function nodes.
+  const valueAst = parseCssTree(raw.value, {
+    context: 'value',
+    positions: true,
+  })
+
+  // The offset where the raw value starts in the original input.
+  const baseOffset = raw.loc.start.offset
+
+  walkCssTree(valueAst, (node: CssNode) => {
+    if (node.type === 'Function' && FUNCTION_NAMES.includes(node.name)) {
+      const parsed = parseWithOffset(node as FunctionNode, baseOffset, diagnostics)
+
+      if (parsed) {
+        functions.push(parsed)
+      }
+    }
+  })
+
+  return functions
+}
+
 function parse(node: FunctionNode, diagnostics: Diagnostics): SnowFunction | null {
+  return parseWithOffset(node, 0, diagnostics)
+}
+
+/** Parses a function node with an offset adjustment for locations. */
+function parseWithOffset(
+  node: FunctionNode,
+  baseOffset: number,
+  diagnostics: Diagnostics,
+): SnowFunction | null {
   if (!node.loc) {
     diagnostics.error({
       message: `missing location for function node '${node.name}'`,
@@ -53,8 +99,8 @@ function parse(node: FunctionNode, diagnostics: Diagnostics): SnowFunction | nul
   }
 
   const location: Location = {
-    start: node.loc.start.offset,
-    end: node.loc.end.offset,
+    start: node.loc.start.offset + baseOffset,
+    end: node.loc.end.offset + baseOffset,
   }
 
   const Parser = node.name === SnowFunctionName.Value ? ValueFunctionParser : TokenFunctionParser

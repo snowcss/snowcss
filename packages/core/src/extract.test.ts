@@ -227,4 +227,41 @@ describe('extract', () => {
       expect(diagnostics.errors).toHaveLength(3)
     })
   })
+
+  describe('custom property values', () => {
+    it('extracts --token() from custom property value', () => {
+      const css = '.app { --border: 1px solid --token("colors.gray.700"); }'
+      const [functions, diagnostics] = extract(css)
+      expect(functions).toHaveLength(1)
+      expect(functions[0]).toBeInstanceOf(TokenFunction)
+      expect(functions[0].path.toDotPath()).toBe('colors.gray.700')
+      expect(diagnostics.hasErrors).toBe(false)
+    })
+
+    it('extracts --value() from custom property value', () => {
+      const css = '.app { --size: --value("spacing.4"); }'
+      const [functions, diagnostics] = extract(css)
+      expect(functions).toHaveLength(1)
+      expect(functions[0]).toBeInstanceOf(ValueFunction)
+      expect(functions[0].path.toDotPath()).toBe('spacing.4')
+      expect(diagnostics.hasErrors).toBe(false)
+    })
+
+    it('extracts multiple functions from custom property value', () => {
+      const css =
+        '.app { --gradient: linear-gradient(--token("colors.red.500"), --token("colors.blue.500")); }'
+      const [functions] = extract(css)
+      expect(functions).toHaveLength(2)
+      expect(functions[0].path.toDotPath()).toBe('colors.red.500')
+      expect(functions[1].path.toDotPath()).toBe('colors.blue.500')
+    })
+
+    it('returns correct location offsets for functions in custom property values', () => {
+      const css = '.app { --border: 1px solid --token("colors.gray.700"); }'
+      const [functions] = extract(css)
+      const fn = functions[0]
+      // Verify the location points to the correct substring.
+      expect(css.substring(fn.location.start, fn.location.end)).toBe('--token("colors.gray.700")')
+    })
+  })
 })
