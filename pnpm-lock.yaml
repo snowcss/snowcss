@@ -48,9 +48,6 @@ importers:
         specifier: ^3.5.24
         version: 3.5.26(typescript@5.9.3)
     devDependencies:
-      '@snowcss/internal':
-        specifier: 'workspace:'
-        version: link:../../packages/internal
       '@snowcss/vite':
         specifier: 'workspace:'
         version: link:../../packages/vite
@@ -63,6 +60,9 @@ importers:
       '@vue/tsconfig':
         specifier: ^0.8.1
         version: 0.8.1(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
+      snowcss:
+        specifier: 'workspace:'
+        version: link:../../packages/snowcss
       tsx:
         specifier: 4.21.0
         version: 4.21.0
@@ -109,6 +109,25 @@ importers:
       vite:
         specifier: 'catalog:'
         version: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.16(@types/node@24.10.4)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
+
+  packages/snowcss:
+    dependencies:
+      '@snowcss/internal':
+        specifier: 'workspace:'
+        version: link:../internal
+      '@snowcss/vite':
+        specifier: 'workspace:'
+        version: link:../vite
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.4
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.18.2(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))
       vitest:
         specifier: 'catalog:'
         version: 4.0.16(@types/node@24.10.4)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)

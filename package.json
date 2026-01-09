@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter '@snowcss/*' build",
-    "build:watch": "pnpm --filter '@snowcss/*' build:watch",
+    "build": "pnpm --filter './packages/**' build",
+    "build:watch": "pnpm --filter './packages/**' build:watch",
     "changeset": "changeset",
     "check": "biome check .",
     "check:fix": "biome check --write .",

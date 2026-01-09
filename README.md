@@ -2,7 +2,7 @@
 
 > Cool by design.
 
-A config-driven design token system for Vite, complete with LSP and VS Code extension.
+A toolchain for building consistent, shareable, typesafe, and flexible design token systems.
 
 ## Configuration
 
