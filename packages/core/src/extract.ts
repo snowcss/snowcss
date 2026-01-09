@@ -40,7 +40,7 @@ export function extract(input: string): WithDiagnostics<Array<SnowFunction>> {
 
     // Handle Raw nodes inside custom property declarations. css-tree parses custom property
     // values as Raw nodes, so we need to re-parse them to find Snow functions.
-    if (node.type === 'Raw' && FUNCTION_NAMES.some((name) => name === node.value)) {
+    if (node.type === 'Raw' && FUNCTION_NAMES.some((name) => node.value.includes(name))) {
       const extracted = extractFromRaw(node, diagnostics)
       functions.push(...extracted)
     }
