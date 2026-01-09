@@ -23,9 +23,24 @@ export class ResolvedToken {
     readonly location: Location,
   ) {}
 
+  /** Returns true if this is a token function. */
+  get isToken(): boolean {
+    return this.name === SnowFunctionName.Token
+  }
+
+  /** Returns true if this is a value function. */
+  get isValue(): boolean {
+    return this.name === SnowFunctionName.Value
+  }
+
   /** Returns either a CSS variable reference or a resolved CSS value. */
   toCss(): string {
     return this.name === SnowFunctionName.Token ? this.path.toCssVarRef() : this.resolved.join(' ')
+  }
+
+  /** Returns a resolved CSS value regardless of the function name/type. */
+  toCssValue(): string {
+    return this.resolved.join(' ')
   }
 }
 

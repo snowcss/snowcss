@@ -1,6 +1,6 @@
-import type { Path } from '@/path'
-import type { Token } from '@/token'
-import type { Location, ToCacheKey } from '@/types'
+import type { Path } from '#path'
+import type { Token } from '#token'
+import type { Location, ToCacheKey } from '#types'
 
 import type { SnowFunction } from './index'
 import { SnowFunctionName } from './index'

@@ -11,7 +11,7 @@ export function emit(tokens: Iterable<ResolvedToken>, options: EmitCssOptions = 
 
   for (const token of tokens) {
     const name = token.path.toCssVar()
-    const value = token.toCss()
+    const value = token.toCssValue()
 
     const line = options.minify ? `${name}:${value};` : `  ${name}: ${value};`
 

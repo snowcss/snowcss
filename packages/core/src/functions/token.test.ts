@@ -1,9 +1,9 @@
 import type { CssNode, FunctionNode, List } from 'css-tree'
 import { describe, expect, it } from 'vitest'
 
-import { Diagnostics } from '@/diagnostics'
-import { Path } from '@/path'
-import { Token } from '@/token'
+import { Diagnostics } from '#diagnostics'
+import { Path } from '#path'
+import { Token } from '#token'
 
 import { SnowFunctionName } from './index'
 import { TokenFunction, TokenFunctionParser } from './token'

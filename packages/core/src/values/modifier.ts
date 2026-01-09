@@ -1,4 +1,4 @@
-import type { ToCacheKey } from '@/types'
+import type { ToCacheKey } from '#types'
 
 /** Unit conversion modifier for --value() function. */
 export class UnitModifier implements ToCacheKey {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { Path } from '@/path'
-import { Token } from '@/token'
+import { Path } from '#path'
+import { Token } from '#token'
 
 import { Config } from './config'
 import { defineConfig } from './user'

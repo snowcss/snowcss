@@ -1,5 +1,5 @@
-import type { Flatten, MaybePromise } from '@/utils'
-import { merge } from '@/utils'
+import type { Flatten, MaybePromise } from '#utils'
+import { merge } from '#utils'
 
 import type { UserTokens } from './tokens'
 

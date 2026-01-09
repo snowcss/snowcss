@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "customConditions": ["snowcss"],
+    "allowImportingTsExtensions": true,
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
@@ -11,9 +11,6 @@
     "moduleDetection": "force",
     "moduleResolution": "bundler",
     "outDir": "${configDir}/dist",
-    "paths": {
-      "@/*": ["${configDir}/src/*"]
-    },
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext"

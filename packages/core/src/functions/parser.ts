@@ -1,8 +1,8 @@
 import type { CssNode, FunctionNode } from 'css-tree'
 
-import type { Diagnostics } from '@/diagnostics'
-import { Path } from '@/path'
-import type { Location } from '@/types'
+import type { Diagnostics } from '#diagnostics'
+import { Path } from '#path'
+import type { Location } from '#types'
 
 import type { SnowFunction } from './index'
 

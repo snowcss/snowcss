@@ -1,5 +1,5 @@
-import type { Path } from '@/path'
-import { Token } from '@/token'
+import type { Path } from '#path'
+import { Token } from '#token'
 
 import type { UserConfig, UserTokens } from './user'
 

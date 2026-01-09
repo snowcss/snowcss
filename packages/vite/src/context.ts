@@ -26,7 +26,9 @@ export class Context {
     const [resolved, resolvedDiagnostics] = resolve(this.config, extracted)
 
     for (const token of resolved) {
-      this.collected.set(token.path.toDotPath(), token)
+      if (token.isToken) {
+        this.collected.set(token.path.toDotPath(), token)
+      }
     }
 
     return [resolved, extractedDiagnostics.merge(resolvedDiagnostics)]
