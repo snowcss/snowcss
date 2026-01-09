@@ -5,11 +5,10 @@
 }
 
 :root {
-  font-family: 'Inter', system-ui, sans-serif;
-  line-height: 1.6;
-  font-weight: 400;
-  color: --token('color.gray.100');
-  background: --token('color.gray.900');
+  font-family: --token("font.sans");
+  line-height: --token("leading.normal");
+  color: --token("color.gray.100");
+  background: --token("color.gray.900");
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
