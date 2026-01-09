@@ -3,7 +3,7 @@ import { defineConfig } from '@snowcss/core'
 export default defineConfig({
   inject: 'asset',
   tokens: {
-    fonts: {
+    font: {
       sans: `Inter, system-ui, sans-serif`,
       mono: `'JetBrains Mono', monospace`,
     },

@@ -109,7 +109,7 @@ color: --token("color.gray.900");</pre>
 }
 
 .card-hover:hover {
-  background: --token('color.gray.800' / 90%);
+  background: --value('color.gray.800' / 90%);
   border-color: --token('color.blue.500');
   transform: translateY(-0.125rem);
   box-shadow: 0 0.5rem 0 --value('color.blue.500' / 20%);
