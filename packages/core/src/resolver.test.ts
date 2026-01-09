@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { Config } from './config'
 import { defineConfig } from './config/user'
-import { extract } from './extract'
+import { extract } from './extractor'
 import { SnowFunctionName } from './functions'
 import { Path } from './path'
 import { ResolvedToken, resolve, resolveAll } from './resolver'

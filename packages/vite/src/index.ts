@@ -1,10 +1,10 @@
+import type { Diagnostics } from '@snowcss/core'
+import type { PluginContext, TransformPluginContext } from 'rollup'
 import type { HtmlTagDescriptor, Plugin } from 'vite'
 
 import { VIRTUAL_CSS_ID, VIRTUAL_CSS_ID_RESOLVED } from './constants'
 import { Context } from './context'
 import { serveVirtualCss } from './middlewares'
-
-const ATRULE_PATTERN = /@snowcss\s*;/g
 
 interface SnowPluginOptions {
   /** Path to the Snow CSS config file. */
@@ -77,6 +77,19 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
     return null
   }
 
+  function emitDiagnostics(
+    ctx: TransformPluginContext | PluginContext,
+    diagnostics: Diagnostics,
+  ): void {
+    if (diagnostics.size) {
+      for (const diagnostic of diagnostics) {
+        if (diagnostic.severity === 'error') ctx.error(diagnostic.message)
+        if (diagnostic.severity === 'warning') ctx.warn(diagnostic.message)
+        if (diagnostic.severity === 'info') ctx.info(diagnostic.message)
+      }
+    }
+  }
+
   return {
     name: 'vite-plugin-snowcss',
 
@@ -130,18 +143,7 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         const inject = snowContext.config.config.inject
         const [resolved, diagnostics] = snowContext.collect(code)
 
-        if (diagnostics.size) {
-          for (const diagnostic of diagnostics) {
-            const message = {
-              message: diagnostic.message,
-              code: diagnostic.context,
-            }
-
-            if (diagnostic.severity === 'error') this.error(message)
-            if (diagnostic.severity === 'warning') this.warn(message)
-            if (diagnostic.severity === 'info') this.info(message)
-          }
-        }
+        emitDiagnostics(this, diagnostics)
 
         // Short-circuit the transform if there are any error diagnostics.
         if (diagnostics.hasErrors) {
@@ -156,17 +158,26 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         if (inject === 'at-rule' && !isBuild) {
           const isAtRuleFile = atRuleFileId === null || atRuleFileId === id
 
-          // TODO(norskeld): This is far from ideal, instead of this we need to introduce a new
-          // token kind that will be used to inject the @snowcss; directive.
-          if (isAtRuleFile && ATRULE_PATTERN.test(result)) {
-            atRuleFileId = id
-            ATRULE_PATTERN.lastIndex = 0
+          if (isAtRuleFile) {
+            const [atRules, diagnostics] = snowContext.collectAtRule(result)
 
-            const css = snowContext.emitAllCss({
-              minify: false,
-            })
+            emitDiagnostics(this, diagnostics)
 
-            result = result.replace(ATRULE_PATTERN, css ?? '')
+            if (atRules.length > 0) {
+              atRuleFileId = id
+
+              if (atRules.length > 1) {
+                this.warn(
+                  `found ${atRules.length} '@snowcss' at-rules, only the first one will be used`,
+                )
+              }
+
+              const css = snowContext.emitAllCss({
+                minify: false,
+              })
+
+              result = snowContext.replaceAtRule(result, atRules[0], css ?? '')
+            }
           }
         }
 
@@ -208,18 +219,26 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         for (const [fileName, asset] of Object.entries(bundle)) {
           if (asset.type === 'asset' && fileName.endsWith('.css')) {
             const content = typeof asset.source === 'string' ? asset.source : ''
+            const [atRules, diagnostics] = snowContext.collectAtRule(content)
 
-            if (ATRULE_PATTERN.test(content)) {
-              ATRULE_PATTERN.lastIndex = 0
-              asset.source = content.replace(ATRULE_PATTERN, source)
+            emitDiagnostics(this, diagnostics)
+
+            if (atRules.length > 0) {
+              if (atRules.length > 1) {
+                this.warn(
+                  `found ${atRules.length} '@snowcss' at-rules, only the first one will be used`,
+                )
+              }
+
+              asset.source = snowContext.replaceAtRule(content, atRules[0], source)
               atRuleFound = true
             }
           }
         }
 
         if (!atRuleFound) {
-          this.warn(
-            `inject is set to 'at-rule', but no '@snowcss;' directive was found in CSS files`,
+          this.error(
+            `inject is set to 'at-rule', but no '@snowcss;' at-rule was found in CSS files`,
           )
         }
       }

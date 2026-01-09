@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { Config, defineConfig } from './config'
-import { emit } from './emit'
+import { emit } from './emitter'
 import { resolveAll } from './resolver'
 
 /** Helper to create a test config. */

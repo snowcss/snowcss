@@ -3,9 +3,10 @@ import type {
   EmitCssOptions,
   LoadConfigOptions,
   ResolvedToken,
+  SnowAtRule,
   WithDiagnostics,
 } from '@snowcss/core'
-import { emit, extract, loadConfig, resolve, resolveAll } from '@snowcss/core'
+import { emit, extract, extractAtRule, loadConfig, resolve, resolveAll } from '@snowcss/core'
 
 interface CreateContextOptions extends LoadConfigOptions {}
 
@@ -34,6 +35,10 @@ export class Context {
     return [resolved, extractedDiagnostics.merge(resolvedDiagnostics)]
   }
 
+  collectAtRule(input: string): WithDiagnostics<Array<SnowAtRule>> {
+    return extractAtRule(input)
+  }
+
   replace(input: string, resolved: Array<ResolvedToken>): string {
     const values = resolved.sort((a, b) => b.location.end - a.location.end)
 
@@ -45,6 +50,12 @@ export class Context {
     }
 
     return input
+  }
+
+  /** Replaces a single at-rule in the input string using its location offsets. */
+  replaceAtRule(input: string, atRule: SnowAtRule, replacement: string): string {
+    const { start, end } = atRule.location
+    return input.slice(0, start) + replacement + input.slice(end)
   }
 
   emitAllCss(options: EmitCssOptions = {}): string | null {

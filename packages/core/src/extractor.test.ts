@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { extract } from './extract'
+import { SnowAtRule } from './at-rule'
+import { extract, extractAtRule } from './extractor'
 import { TokenFunction, ValueFunction } from './functions'
 
 describe('extract', () => {
@@ -279,5 +280,75 @@ describe('extract', () => {
       // Verify the location points to the correct substring.
       expect(css.substring(fn.location.start, fn.location.end)).toBe('--token("colors.gray.700")')
     })
+  })
+})
+
+describe('extractAtRule', () => {
+  it('extracts @snowcss; at-rule', () => {
+    const css = '@snowcss;'
+    const [atRules, diagnostics] = extractAtRule(css)
+    expect(atRules).toHaveLength(1)
+    expect(atRules[0]).toBeInstanceOf(SnowAtRule)
+    expect(diagnostics.hasErrors).toBe(false)
+  })
+
+  it('extracts @snowcss; at-rule with surrounding content', () => {
+    const css = `
+      @snowcss;
+      .test { color: red; }
+    `
+    const [atRules] = extractAtRule(css)
+    expect(atRules).toHaveLength(1)
+  })
+
+  it('returns correct location offsets', () => {
+    const css = '@snowcss;'
+    const [atRules] = extractAtRule(css)
+    const atRule = atRules[0]
+    expect(css.substring(atRule.location.start, atRule.location.end)).toBe('@snowcss;')
+  })
+
+  it('returns correct location offsets with leading content', () => {
+    const css = '.test { color: red; }\n@snowcss;'
+    const [atRules] = extractAtRule(css)
+    const atRule = atRules[0]
+    expect(css.substring(atRule.location.start, atRule.location.end)).toBe('@snowcss;')
+  })
+
+  it('extracts multiple @snowcss; at-rules', () => {
+    const css = '@snowcss;\n.test { color: red; }\n@snowcss;'
+    const [atRules] = extractAtRule(css)
+    expect(atRules).toHaveLength(2)
+  })
+
+  it('ignores other at-rules', () => {
+    const css = '@media (min-width: 768px) { .test { color: red; } }\n@snowcss;'
+    const [atRules] = extractAtRule(css)
+    expect(atRules).toHaveLength(1)
+  })
+
+  it('returns empty array for CSS without @snowcss', () => {
+    const css = '.test { color: red; }'
+    const [atRules, diagnostics] = extractAtRule(css)
+    expect(atRules).toHaveLength(0)
+    expect(diagnostics.hasErrors).toBe(false)
+  })
+
+  it('returns empty array for empty input', () => {
+    const [atRules, diagnostics] = extractAtRule('')
+    expect(atRules).toHaveLength(0)
+    expect(diagnostics.hasErrors).toBe(false)
+  })
+
+  it('has null prelude for simple @snowcss;', () => {
+    const css = '@snowcss;'
+    const [atRules] = extractAtRule(css)
+    expect(atRules[0].prelude).toBeNull()
+  })
+
+  it('has null block for simple @snowcss;', () => {
+    const css = '@snowcss;'
+    const [atRules] = extractAtRule(css)
+    expect(atRules[0].block).toBeNull()
   })
 })

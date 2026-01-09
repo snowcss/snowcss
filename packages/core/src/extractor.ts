@@ -1,6 +1,8 @@
-import type { CssNode, FunctionNode, Raw } from 'css-tree'
+import type { Atrule, CssNode, FunctionNode, Raw } from 'css-tree'
 import { parse as parseCssTree, walk as walkCssTree } from 'css-tree'
 
+import type { SnowAtRule } from './at-rule'
+import { SNOW_ATRULE_NAME, SnowAtRuleParser } from './at-rule'
 import type { WithDiagnostics } from './diagnostics'
 import { Diagnostics } from './diagnostics'
 import type { SnowFunction } from './functions'
@@ -106,4 +108,50 @@ function parseWithOffset(
   const Parser = node.name === SnowFunctionName.Value ? ValueFunctionParser : TokenFunctionParser
 
   return new Parser(node, location, diagnostics).parse()
+}
+
+/**
+ * Extracts all `@snowcss` at-rules from a CSS string.
+ *
+ * Returns a tuple of the found at-rules and a {@link Diagnostics} object.
+ */
+export function extractAtRule(input: string): WithDiagnostics<Array<SnowAtRule>> {
+  const atRules: Array<SnowAtRule> = []
+  const diagnostics = new Diagnostics()
+
+  const ast = parseCssTree(input, {
+    context: 'stylesheet',
+    positions: true,
+  })
+
+  walkCssTree(ast, (node) => {
+    if (node.type === 'Atrule' && node.name === SNOW_ATRULE_NAME) {
+      const parsed = parseAtRule(node, diagnostics)
+
+      if (parsed) {
+        atRules.push(parsed)
+      }
+    }
+  })
+
+  return [atRules, diagnostics]
+}
+
+/** Parses an Atrule node into a SnowAtRule. */
+function parseAtRule(node: Atrule, diagnostics: Diagnostics): SnowAtRule | null {
+  if (!node.loc) {
+    diagnostics.error({
+      message: `missing location for at-rule '@${node.name}'`,
+      context: 'extract:parseAtRule',
+    })
+
+    return null
+  }
+
+  const location: Location = {
+    start: node.loc.start.offset,
+    end: node.loc.end.offset,
+  }
+
+  return new SnowAtRuleParser(node, location, diagnostics).parse()
 }

@@ -1,3 +1,6 @@
+// At-rule.
+export type { SnowAtRuleBlock, SnowAtRulePrelude } from './at-rule'
+export { SnowAtRule } from './at-rule'
 // Config.
 export type { InjectType, LoadConfigOptions, UserConfig, UserTokens } from './config'
 export { Config, defineConfig, defineTokens, loadConfig, staticConfigMeta } from './config'
