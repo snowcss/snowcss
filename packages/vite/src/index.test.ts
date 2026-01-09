@@ -158,26 +158,21 @@ describe('snowcss plugin', () => {
       }
     })
 
-    it('warns when no @snowcss directive found with at-rule inject', async () => {
-      const warnings: Array<string> = []
-
-      await build({
-        root: FIXTURES_ATRULE_ROOT,
-        plugins: [snowCssPlugin()],
-        logLevel: 'silent',
-        build: {
-          write: false,
-          rollupOptions: {
-            // Use test.css which has no @snowcss directive.
-            input: FIXTURES_ATRULE_TEST_CSS,
-            onwarn(warning) {
-              warnings.push(typeof warning === 'string' ? warning : warning.message)
+    it('errors when no @snowcss at-rule found with at-rule inject', async () => {
+      await expect(
+        build({
+          root: FIXTURES_ATRULE_ROOT,
+          plugins: [snowCssPlugin()],
+          logLevel: 'silent',
+          build: {
+            write: false,
+            rollupOptions: {
+              // Use test.css which has no @snowcss directive.
+              input: FIXTURES_ATRULE_TEST_CSS,
             },
           },
-        },
-      })
-
-      expect(warnings.some((w) => w.includes(`no '@snowcss;' directive was found`))).toBe(true)
+        }),
+      ).rejects.toThrow(`no '@snowcss' at-rule was found`)
     })
 
     it('only emits used tokens in build output', async () => {

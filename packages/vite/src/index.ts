@@ -237,9 +237,7 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         }
 
         if (!atRuleFound) {
-          this.error(
-            `inject is set to 'at-rule', but no '@snowcss;' at-rule was found in CSS files`,
-          )
+          this.error(`inject is set to 'at-rule', but no '@snowcss' at-rule was found in CSS files`)
         }
       }
     },
