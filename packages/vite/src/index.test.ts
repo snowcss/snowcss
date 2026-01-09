@@ -36,6 +36,93 @@ describe('snowcss plugin', () => {
       expect(resolved?.id).toBe('\0virtual:snowcss/tokens.css')
     })
 
+    it('resolves virtual JS module id', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin()],
+        logLevel: 'silent',
+      })
+
+      const resolved = await server.pluginContainer.resolveId('virtual:snowcss')
+
+      expect(resolved?.id).toBe('\0virtual:snowcss')
+    })
+
+    it('configures snowcss/client alias to virtual module', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin()],
+        logLevel: 'silent',
+      })
+
+      // The alias is configured in the config hook. Vite normalizes aliases to array format.
+      const alias = server.config.resolve.alias
+      const snowcssAlias = Array.isArray(alias)
+        ? alias.find((a) => a.find === 'snowcss/client')
+        : null
+
+      expect(snowcssAlias).toBeDefined()
+    })
+
+    it('loads virtual JS module with runtime functions', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin()],
+        logLevel: 'silent',
+      })
+
+      const result = await server.pluginContainer.load('\0virtual:snowcss')
+
+      expect(result).toContain('export function value')
+      expect(result).toContain('export function token')
+      expect(result).toContain('export function tokens')
+      expect(result).toContain('const LOOKUP')
+      expect(result).toContain('const TOKENS')
+    })
+
+    it('does not include Node.js dependencies in virtual module', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin()],
+        logLevel: 'silent',
+      })
+
+      const result = await server.pluginContainer.load('\0virtual:snowcss')
+
+      // Virtual module should not import from @snowcss/core (has Node.js deps).
+      expect(result).not.toContain('@snowcss/core')
+    })
+
+    it('generates lookup map with token paths', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin()],
+        logLevel: 'silent',
+      })
+
+      const result = await server.pluginContainer.load('\0virtual:snowcss')
+
+      expect(result).toContain('color.primary')
+      expect(result).toContain('color.secondary')
+      expect(result).toContain('#ff0000')
+      expect(result).toContain('#00ff00')
+    })
+
+    it('generates nested tokens structure', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin()],
+        logLevel: 'silent',
+      })
+
+      const result = await server.pluginContainer.load('\0virtual:snowcss')
+
+      // Check for nested structure (color: { primary: '...', secondary: '...' }).
+      expect(result).toMatch(/"color":\s*\{/)
+      expect(result).toMatch(/"primary":\s*"#ff0000"/)
+      expect(result).toMatch(/"secondary":\s*"#00ff00"/)
+    })
+
     it('loads virtual module with all CSS variables', async () => {
       server = await createServer({
         root: FIXTURES_ATRULE_ROOT,

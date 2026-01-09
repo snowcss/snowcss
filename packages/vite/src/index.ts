@@ -2,7 +2,14 @@ import type { Diagnostics } from '@snowcss/internal'
 import type { PluginContext, TransformPluginContext } from 'rollup'
 import type { HtmlTagDescriptor, Plugin } from 'vite'
 
-import { VIRTUAL_CSS_ID, VIRTUAL_CSS_ID_RESOLVED } from './constants'
+import { generateVirtualModule, writeTypesFile } from './codegen'
+import {
+  SNOWCSS_CLIENT_ID,
+  VIRTUAL_CSS_ID,
+  VIRTUAL_CSS_ID_RESOLVED,
+  VIRTUAL_MODULE_ID,
+  VIRTUAL_MODULE_ID_RESOLVED,
+} from './constants'
 import { Context } from './context'
 import { serveVirtualCss } from './middlewares'
 
@@ -92,17 +99,30 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
 
   return {
     name: 'vite-plugin-snowcss',
+    enforce: 'pre',
 
-    async config({ root }) {
+    async config({ root = process.cwd() }) {
       try {
         snowContext = await Context.create({
           root,
           path: options.config,
         })
+
+        // Generate TypeScript definitions for the virtual module.
+        writeTypesFile(snowContext.config, root)
       } catch (error) {
         if (error instanceof Error) {
           this.error('failed to load snowcss config')
         }
+      }
+
+      // Alias 'snowcss/client' to the virtual module.
+      return {
+        resolve: {
+          alias: {
+            [SNOWCSS_CLIENT_ID]: VIRTUAL_MODULE_ID,
+          },
+        },
       }
     },
 
@@ -114,6 +134,8 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
       // Watch for snow config changes.
       server.watcher.add(snowContext.config.path).on('change', (file) => {
         if (file === snowContext.config.path) {
+          // Regenerate TypeScript definitions on config change.
+          writeTypesFile(snowContext.config, server.config.root)
           server.restart()
         }
       })
@@ -123,9 +145,10 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
     },
 
     resolveId(id) {
-      if (id === VIRTUAL_CSS_ID) {
-        return VIRTUAL_CSS_ID_RESOLVED
-      }
+      // Resolve 'virtual:snowcss' imports.
+      if (id === VIRTUAL_MODULE_ID) return VIRTUAL_MODULE_ID_RESOLVED
+      // Resolve 'virtual:snowcss/tokens.css' imports.
+      if (id === VIRTUAL_CSS_ID) return VIRTUAL_CSS_ID_RESOLVED
     },
 
     load(id) {
@@ -135,6 +158,10 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         })
 
         return css ?? ''
+      }
+
+      if (id === VIRTUAL_MODULE_ID_RESOLVED) {
+        return generateVirtualModule(snowContext)
       }
     },
 
