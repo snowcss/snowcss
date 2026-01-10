@@ -1,4 +1,4 @@
-import { defineConfig } from '@snowcss/internal'
+import { defineConfig } from 'snowcss'
 
 export default defineConfig({
   inject: 'asset',

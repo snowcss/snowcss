@@ -11,7 +11,7 @@
 
     /* Bundler mode */
     "allowImportingTsExtensions": true,
-    "customConditions": ["snowcss"],
+    "customConditions": ["development"],
     "moduleResolution": "bundler",
     "moduleDetection": "force",
     "noEmit": true,

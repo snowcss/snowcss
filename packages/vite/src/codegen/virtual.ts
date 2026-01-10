@@ -1,4 +1,4 @@
-import type { Context } from './context'
+import type { Context } from '#context'
 
 interface SerializedToken {
   raw: string

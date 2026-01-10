@@ -86,7 +86,7 @@ export function generateTypes(config: Config): string {
   const tokensType = generateTokensType(config)
 
   const dts = `
-interface TokenRegistry {
+interface SnowTokenRegistry {
   path: ${tokenPathType}
   tokens: ${tokensType}
 }
