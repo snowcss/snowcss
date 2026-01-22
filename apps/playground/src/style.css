@@ -24,7 +24,7 @@ body {
 }
 
 p {
-  margin-bottom: --token('size.2');
+  margin-bottom: --token("size.2");
 }
 
 ul li {
