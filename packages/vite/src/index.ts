@@ -14,7 +14,10 @@ import { Context } from './context'
 import { serveVirtualCss } from './middlewares'
 
 interface SnowPluginOptions {
-  /** Path to the Snow CSS config file. */
+  /**
+   * Path to the Snow CSS config file. If not specified, the plugin will look for a
+   * 'snowcss.config.ts' file in directory with the Vite config.
+   */
   config?: string
 }
 

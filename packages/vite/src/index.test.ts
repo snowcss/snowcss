@@ -5,6 +5,13 @@ import type { ViteDevServer } from 'vite'
 import { build, createServer } from 'vite'
 import { afterEach, describe, expect, it } from 'vitest'
 
+import {
+  SNOWCSS_CLIENT_ID,
+  VIRTUAL_CSS_ID,
+  VIRTUAL_CSS_ID_RESOLVED,
+  VIRTUAL_MODULE_ID,
+  VIRTUAL_MODULE_ID_RESOLVED,
+} from './constants'
 import snowCssPlugin from './index'
 
 const FIXTURES_ASSET_ROOT = resolve(__dirname, '__fixtures__/asset')
@@ -31,9 +38,9 @@ describe('snowcss plugin', () => {
         logLevel: 'silent',
       })
 
-      const resolved = await server.pluginContainer.resolveId('virtual:snowcss/tokens.css')
+      const resolved = await server.pluginContainer.resolveId(VIRTUAL_CSS_ID)
 
-      expect(resolved?.id).toBe('\0virtual:snowcss/tokens.css')
+      expect(resolved?.id).toBe(VIRTUAL_CSS_ID_RESOLVED)
     })
 
     it('resolves virtual JS module id', async () => {
@@ -43,9 +50,9 @@ describe('snowcss plugin', () => {
         logLevel: 'silent',
       })
 
-      const resolved = await server.pluginContainer.resolveId('virtual:snowcss')
+      const resolved = await server.pluginContainer.resolveId(VIRTUAL_MODULE_ID)
 
-      expect(resolved?.id).toBe('\0virtual:snowcss')
+      expect(resolved?.id).toBe(VIRTUAL_MODULE_ID_RESOLVED)
     })
 
     it('configures snowcss/client alias to virtual module', async () => {
@@ -58,7 +65,7 @@ describe('snowcss plugin', () => {
       // The alias is configured in the config hook. Vite normalizes aliases to array format.
       const alias = server.config.resolve.alias
       const snowcssAlias = Array.isArray(alias)
-        ? alias.find((a) => a.find === 'snowcss/client')
+        ? alias.find((a) => a.find === SNOWCSS_CLIENT_ID)
         : null
 
       expect(snowcssAlias).toBeDefined()
@@ -71,13 +78,13 @@ describe('snowcss plugin', () => {
         logLevel: 'silent',
       })
 
-      const result = await server.pluginContainer.load('\0virtual:snowcss')
+      const result = await server.pluginContainer.load(VIRTUAL_MODULE_ID_RESOLVED)
 
       expect(result).toContain('export function value')
       expect(result).toContain('export function token')
       expect(result).toContain('export function tokens')
-      expect(result).toContain('const LOOKUP')
-      expect(result).toContain('const TOKENS')
+      expect(result).toContain('export function warmupCache')
+      expect(result).toContain('const REGISTRY')
     })
 
     it('does not include Node.js dependencies in virtual module', async () => {
@@ -87,25 +94,24 @@ describe('snowcss plugin', () => {
         logLevel: 'silent',
       })
 
-      const result = await server.pluginContainer.load('\0virtual:snowcss')
+      const result = await server.pluginContainer.load(VIRTUAL_MODULE_ID_RESOLVED)
 
       // Virtual module should not import from @snowcss/core (has Node.js deps).
       expect(result).not.toContain('@snowcss/core')
     })
 
-    it('generates lookup map with token paths', async () => {
+    it('generates REGISTRY with token values', async () => {
       server = await createServer({
         root: FIXTURES_ATRULE_ROOT,
         plugins: [snowCssPlugin()],
         logLevel: 'silent',
       })
 
-      const result = await server.pluginContainer.load('\0virtual:snowcss')
+      const result = await server.pluginContainer.load(VIRTUAL_MODULE_ID_RESOLVED)
 
-      expect(result).toContain('color.primary')
-      expect(result).toContain('color.secondary')
-      expect(result).toContain('#ff0000')
-      expect(result).toContain('#00ff00')
+      expect(result).toContain('const REGISTRY')
+      expect(result).toContain('"primary":"#ff0000"')
+      expect(result).toContain('"secondary":"#00ff00"')
     })
 
     it('generates nested tokens structure', async () => {
@@ -115,7 +121,7 @@ describe('snowcss plugin', () => {
         logLevel: 'silent',
       })
 
-      const result = await server.pluginContainer.load('\0virtual:snowcss')
+      const result = await server.pluginContainer.load(VIRTUAL_MODULE_ID_RESOLVED)
 
       // Check for nested structure (color: { primary: '...', secondary: '...' }).
       expect(result).toMatch(/"color":\s*\{/)
@@ -130,7 +136,7 @@ describe('snowcss plugin', () => {
         logLevel: 'silent',
       })
 
-      const result = await server.pluginContainer.load('\0virtual:snowcss/tokens.css')
+      const result = await server.pluginContainer.load(VIRTUAL_CSS_ID_RESOLVED)
 
       expect(result).toContain('--color-primary')
       expect(result).toContain('--color-secondary')

@@ -12,6 +12,13 @@ function needsQuotes(key: string): boolean {
   return /^\d/.test(key) || key.includes('.')
 }
 
+function quoteString(s: string): string {
+  if (s.includes('"') || s.includes('`')) return `'${s}'`
+  if (s.includes("'")) return `"${s}"`
+
+  return `'${s}'`
+}
+
 /** Serializes nested tokens object into TypeScript syntax. */
 function serializeTokens(tokens: Tokens, indent = 4): string {
   const entries = Object.entries(tokens)
@@ -26,7 +33,8 @@ function serializeTokens(tokens: Tokens, indent = 4): string {
   const lines = entries
     .map(([keyRaw, valueRaw]) => {
       const key = needsQuotes(keyRaw) ? `'${keyRaw}'` : keyRaw
-      const value = valueRaw === 'string' ? 'string' : serializeTokens(valueRaw, indent + 2)
+      const value =
+        typeof valueRaw === 'string' ? quoteString(valueRaw) : serializeTokens(valueRaw, indent + 2)
 
       return `${spaces}${key}: ${value}`
     })
@@ -56,7 +64,7 @@ function generateTokensType(config: Config): string {
 
     // The last one will be a 'string' type.
     const lastSegment = segments[segments.length - 1]
-    current[lastSegment] = 'string'
+    current[lastSegment] = token.raw as 'string'
   }
 
   return serializeTokens(structure)
@@ -64,14 +72,42 @@ function generateTokensType(config: Config): string {
 
 /** Generates the union of all token dot-paths from the config tokens. */
 function generateTokenPathType(config: Config): string {
+  if (config.tokens.length === 0) {
+    return 'string'
+  }
+
+  const paths = new Set<string>()
+
+  for (const token of config.tokens) {
+    const segments = token.path.segments
+
+    // Add all prefixes including the full path.
+    for (let idx = 1; idx <= segments.length; idx++) {
+      paths.add(segments.slice(0, idx).join('.'))
+    }
+  }
+
+  return Array.from(paths)
+    .sort()
+    .map((path, idx) => {
+      const ident = ' '.repeat(idx === 0 ? 0 : 4)
+      const value = `${ident}| '${path}'`
+
+      return value
+    })
+    .join('\n')
+}
+
+/** Generates the union of all terminal token dot-paths from the config tokens. */
+function generateTokenTerminalPathType(config: Config): string {
   const parts: Array<string> = []
 
   if (config.tokens.length > 0) {
     for (const [idx, token] of config.tokens.entries()) {
-      const spaces = ' '.repeat(idx === 0 ? 0 : 4)
+      const ident = ' '.repeat(idx === 0 ? 0 : 4)
       const path = token.path.toDotPath()
 
-      parts.push(`${spaces}| '${path}'`)
+      parts.push(`${ident}| '${path}'`)
     }
   } else {
     parts.push('string')
@@ -82,13 +118,17 @@ function generateTokenPathType(config: Config): string {
 
 /** Generates TypeScript definitions for the virtual:snowcss module. */
 export function generateTypes(config: Config): string {
-  const tokenPathType = generateTokenPathType(config)
   const tokensType = generateTokensType(config)
+  const tokenPathType = generateTokenPathType(config)
+  const tokenTerminalPathType = generateTokenTerminalPathType(config)
 
   const dts = `
 interface SnowTokenRegistry {
-  path: ${tokenPathType}
   tokens: ${tokensType}
+  path:
+    ${tokenPathType}
+  terminalPath:
+    ${tokenTerminalPathType}
 }
 `.trim()
 

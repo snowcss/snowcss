@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "rollup-plugin-copy": "3.5.0",
     "rollup": "catalog:",
     "tsdown": "catalog:",
     "vitest": "catalog:"

@@ -12,8 +12,8 @@
     "playground:dev": "pnpm --filter playground dev",
     "prepare": "lefthook install",
     "release": "pnpm build && changeset publish",
-    "test": "pnpm --parallel --filter '@snowcss/*' test",
-    "typecheck": "pnpm --parallel --filter '@snowcss/*' typecheck",
+    "test": "pnpm --parallel --filter './packages/**' test",
+    "typecheck": "pnpm --parallel --filter './packages/**' typecheck",
     "version": "changeset version"
   },
   "devDependencies": {
