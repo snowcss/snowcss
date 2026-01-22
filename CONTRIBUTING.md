@@ -52,15 +52,15 @@ PR titles must follow the following format:
 <scope>: <description>
 ```
 
-- **scope**: `core`, `vite`, `lsp`, `vscode`, or `*` for changes that do not affect packages
+- **scope**: `internal`, `vite`, `lsp`, `vscode`, or `*` for changes that do not affect packages
 - **description**: short description of the change
 
 > [!NOTE]
-> If changes affect multiple packages, mention them all in the scope (e.g., `core, vite, lsp: add support for oklch colors`).
+> If changes affect multiple packages, mention them all in the scope (e.g., `internal, vite, lsp: add support for oklch colors`).
 
 Examples:
 
-- `core: add support for oklch colors`
+- `internal: add support for oklch colors`
 - `vite: resolve hot reload issue`
 - `*: update CI workflows`
 

@@ -96,8 +96,8 @@ describe('snowcss plugin', () => {
 
       const result = await server.pluginContainer.load(VIRTUAL_MODULE_ID_RESOLVED)
 
-      // Virtual module should not import from @snowcss/core (has Node.js deps).
-      expect(result).not.toContain('@snowcss/core')
+      // Virtual module should not import from @snowcss/internal (has Node.js deps).
+      expect(result).not.toContain('@snowcss/internal')
     })
 
     it('generates REGISTRY with token values', async () => {
