@@ -35,30 +35,22 @@ function isDigit(char: string | undefined): boolean {
 
 /** Parses a dot-separated path, preserving decimal numbers like '0.5'. */
 function parseDotPath(input: string): Array<string> {
+  input = input.trim()
+
+  if (input.length === 0) return []
+  if (!input.includes('.')) return [input]
+
   const segments: Array<string> = []
-  let current = ''
+  const parts = input.split('.')
 
-  for (let idx = 0; idx < input.length; idx++) {
-    const char = input[idx]
+  for (let index = 0, size = parts.length; index < size; index++) {
+    let segment = parts[index]
 
-    if (char === '.') {
-      const prev = input[idx - 1]
-      const next = input[idx + 1]
-
-      // Dot is a decimal point if between two digits.
-      if (isDigit(prev) && isDigit(next)) {
-        current += char
-      } else {
-        segments.push(current.trim())
-        current = ''
-      }
-    } else {
-      current += char
+    while (index + 1 < size && isDigit(segment) && isDigit(parts[index + 1])) {
+      segment += '.' + parts[++index]
     }
-  }
 
-  if (current.trim().length) {
-    segments.push(current.trim())
+    segments.push(segment.trim())
   }
 
   return segments
