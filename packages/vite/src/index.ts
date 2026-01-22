@@ -19,6 +19,27 @@ interface SnowPluginOptions {
    * 'snowcss.config.ts' file in directory with the Vite config.
    */
   config?: string
+  /**
+   * List of tokens or token namespaces to include in the runtime bundle.
+   *
+   * - If not specified or empty, all tokens from the config will be included.
+   * - When specifying token namespaces, wildcards are supported.
+   * - It's possible to specify RegExp patterns.
+   *
+   * @example
+   *
+   * // Include concrete tokens
+   * ['color.gray.100', 'color.gray.200']
+   *
+   * // Include all tokens in the 'color.accent' and 'size' namespaces
+   * ['color.accent.*', 'size.*']
+   *
+   * // Include all tokens that match the RegExp
+   * [/^color\./]
+   *
+   * @default []
+   */
+  runtimeTokens?: Array<string | RegExp>
 }
 
 export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
@@ -164,7 +185,7 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
       }
 
       if (id === VIRTUAL_MODULE_ID_RESOLVED) {
-        return generateVirtualModule(snowContext)
+        return generateVirtualModule(snowContext, options.runtimeTokens)
       }
     },
 

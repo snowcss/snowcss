@@ -129,6 +129,65 @@ describe('snowcss plugin', () => {
       expect(result).toMatch(/"secondary":\s*"#00ff00"/)
     })
 
+    it('filters runtime tokens with exact match', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin({ runtimeTokens: ['color.primary'] })],
+        logLevel: 'silent',
+      })
+
+      const result = await server.pluginContainer.load(VIRTUAL_MODULE_ID_RESOLVED)
+
+      expect(result).toContain('"primary":"#ff0000"')
+      expect(result).not.toContain('"secondary":"#00ff00"')
+      expect(result).not.toContain('"4":"1rem"')
+    })
+
+    it('filters runtime tokens with wildcard pattern', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin({ runtimeTokens: ['color.*'] })],
+        logLevel: 'silent',
+      })
+
+      const result = await server.pluginContainer.load(VIRTUAL_MODULE_ID_RESOLVED)
+
+      expect(result).toContain('"primary":"#ff0000"')
+      expect(result).toContain('"secondary":"#00ff00"')
+      expect(result).not.toContain('"4":"1rem"')
+      expect(result).not.toContain('"8":"2rem"')
+    })
+
+    it('filters runtime tokens with RegExp pattern', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin({ runtimeTokens: [/^size\./] })],
+        logLevel: 'silent',
+      })
+
+      const result = await server.pluginContainer.load(VIRTUAL_MODULE_ID_RESOLVED)
+
+      expect(result).not.toContain('"primary":"#ff0000"')
+      expect(result).not.toContain('"secondary":"#00ff00"')
+      expect(result).toContain('"4":"1rem"')
+      expect(result).toContain('"8":"2rem"')
+    })
+
+    it('filters runtime tokens with mixed patterns', async () => {
+      server = await createServer({
+        root: FIXTURES_ATRULE_ROOT,
+        plugins: [snowCssPlugin({ runtimeTokens: ['color.primary', /^size\.4$/] })],
+        logLevel: 'silent',
+      })
+
+      const result = await server.pluginContainer.load(VIRTUAL_MODULE_ID_RESOLVED)
+
+      expect(result).toContain('"primary":"#ff0000"')
+      expect(result).not.toContain('"secondary":"#00ff00"')
+      expect(result).toContain('"4":"1rem"')
+      expect(result).not.toContain('"8":"2rem"')
+    })
+
     it('loads virtual module with all CSS variables', async () => {
       server = await createServer({
         root: FIXTURES_ATRULE_ROOT,
