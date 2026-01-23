@@ -1,6 +1,6 @@
 {
   "name": "snowcss",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A toolchain for building consistent, shareable, typesafe, and flexible design token systems.",
   "author": "Vladislav Mamon <hello@nrsk.dev>",
   "maintainers": [
