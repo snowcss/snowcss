@@ -12,11 +12,9 @@ function needsQuotes(key: string): boolean {
   return /^\d/.test(key) || key.includes('.')
 }
 
+/** Escapes a string for a string literal. */
 function quoteString(s: string): string {
-  if (s.includes('"') || s.includes('`')) return `'${s}'`
-  if (s.includes("'")) return `"${s}"`
-
-  return `'${s}'`
+  return '`' + s.replaceAll('`', '\\`') + '`'
 }
 
 /** Serializes nested tokens object into TypeScript syntax. */
