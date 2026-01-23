@@ -1,7 +1,7 @@
 {
-  "name": "@snowcss/vite",
-  "version": "0.2.0",
-  "description": "Snow CSS vite plugin",
+  "name": "snowcss",
+  "version": "0.1.0",
+  "description": "A toolchain for building consistent, shareable, typesafe, and flexible design token systems.",
   "author": "Vladislav Mamon <hello@nrsk.dev>",
   "maintainers": [
     "Vladislav Mamon <hello@nrsk.dev>"
@@ -9,14 +9,13 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/snowcss/snowcss.git",
-    "directory": "packages/vite"
+    "directory": "packages/snowcss"
   },
   "keywords": [
     "design systems",
     "design tokens",
     "typescript",
-    "css",
-    "vite"
+    "css"
   ],
   "license": "MIT",
   "files": [
@@ -37,17 +36,23 @@
           "default": "./dist/index.cjs"
         }
       },
+      "./client": {
+        "import": {
+          "types": "./dist/client.d.mts",
+          "default": "./dist/client.mjs"
+        },
+        "require": {
+          "types": "./dist/client.d.cts",
+          "default": "./dist/client.cjs"
+        }
+      },
       "./package.json": "./package.json"
     }
   },
-  "imports": {
-    "#*": [
-      "./src/*",
-      "./src/*.ts",
-      "./src/*/index.ts"
-    ]
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts"
   },
-  "exports": "./src/index.ts",
   "scripts": {
     "build": "tsdown",
     "build:watch": "tsdown --watch",
@@ -56,16 +61,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@snowcss/internal": "workspace:"
+    "@snowcss/internal": "workspace:",
+    "@snowcss/vite": "workspace:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "rollup-plugin-copy": "3.5.0",
-    "rollup": "catalog:",
     "tsdown": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:"
-  },
-  "peerDependencies": {
-    "vite": "^7.0.0"
   }
 }

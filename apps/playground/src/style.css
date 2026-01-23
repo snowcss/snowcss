@@ -22,3 +22,11 @@ body {
 #app {
   display: contents;
 }
+
+p {
+  margin-bottom: --token("size.2");
+}
+
+ul li {
+  list-style-position: inside;
+}

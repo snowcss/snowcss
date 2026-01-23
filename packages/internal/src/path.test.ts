@@ -14,6 +14,11 @@ describe('Path', () => {
       expect(path.segments).toEqual(['size', '0.5'])
     })
 
+    it('preserves numeric segments like 100.50 in the middle of the path', () => {
+      const path = Path.fromDotPath('size.100.50.foo')
+      expect(path.segments).toEqual(['size', '100.50', 'foo'])
+    })
+
     it('trims whitespace from segments', () => {
       const path = Path.fromDotPath(' foo . bar . baz ')
       expect(path.segments).toEqual(['foo', 'bar', 'baz'])
