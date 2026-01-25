@@ -13,14 +13,14 @@ import { DidChangeWatchedFilesNotification, TextDocumentSyncKind } from 'vscode-
 import type { TextDocuments } from 'vscode-languageserver/node'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
-import { ConfigCache } from '#config'
+import { ConfigCache } from './cache'
 import {
   handleColorPresentation,
   handleCompletion,
   handleDocumentColor,
   handleHover,
-} from '#features'
-import { normalizeFsPath, uriToPath } from '#utils'
+} from './features'
+import { normalizeFsPath, uriToPath } from './utils'
 
 /** Snow CSS LSP server. */
 export class SnowLspServer {

@@ -1,12 +1,10 @@
 import { dirname } from 'node:path'
 
 import type { Config } from '@snowcss/internal'
-import { loadConfig } from '@snowcss/internal'
+import { findNearestConfig, loadConfig } from '@snowcss/internal'
 import type { Connection } from 'vscode-languageserver'
 
-import { normalizeFsPath, uriToPath } from '#utils'
-
-import { findNearestConfig } from './discovery'
+import { normalizeFsPath, uriToPath } from './utils'
 
 /** Caches loaded Snow configs keyed by config file path. */
 export class ConfigCache {
@@ -30,7 +28,7 @@ export class ConfigCache {
     }
 
     // Discover and load new config.
-    const configPath = await findNearestConfig(docPath, workspaceRoots)
+    const configPath = findNearestConfig(docPath, workspaceRoots)
 
     if (!configPath) {
       return null
