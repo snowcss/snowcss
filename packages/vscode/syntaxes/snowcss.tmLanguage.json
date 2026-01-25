@@ -1,0 +1,60 @@
+{
+  "$schema": "https://www.schemastore.org/tmlanguage.json",
+  "scopeName": "source.css.snowcss",
+  "injectionSelector": "L:source.css",
+  "patterns": [
+    {
+      "begin": "(--value)\\s*(\\()",
+      "beginCaptures": {
+        "1": { "name": "support.function.snowcss.value.css" },
+        "2": { "name": "punctuation.definition.group.begin.css" }
+      },
+      "patterns": [
+        { "include": "#path" },
+        { "include": "#to-modifier" },
+        { "include": "#negate-modifier" },
+        { "include": "#alpha-modifier" }
+      ],
+      "end": "\\)",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.group.end.css" }
+      }
+    },
+    {
+      "begin": "(--token)\\s*(\\()",
+      "beginCaptures": {
+        "1": { "name": "support.function.snowcss.token.css" },
+        "2": { "name": "punctuation.definition.group.begin.css" }
+      },
+      "patterns": [{ "include": "#path" }],
+      "end": "\\)",
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.group.end.css" }
+      }
+    }
+  ],
+  "repository": {
+    "path": {
+      "name": "string.quoted.css",
+      "match": "(['\"])[^'\"]+\\1"
+    },
+    "to-modifier": {
+      "match": "\\b(to)\\s+(px|rem)\\b",
+      "captures": {
+        "1": { "name": "keyword.other.snowcss.to.css" },
+        "2": { "name": "keyword.other.unit.css" }
+      }
+    },
+    "negate-modifier": {
+      "name": "keyword.other.snowcss.negate.css",
+      "match": "\\bnegate\\b"
+    },
+    "alpha-modifier": {
+      "match": "(/)\\s*(\\d+(?:\\.\\d+)?%)",
+      "captures": {
+        "1": { "name": "punctuation.separator.css" },
+        "2": { "name": "constant.numeric.css" }
+      }
+    }
+  }
+}

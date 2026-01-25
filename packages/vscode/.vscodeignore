@@ -1,0 +1,17 @@
+# Source and config files.
+src/
+*.ts
+tsconfig.json
+biome.json
+
+# Dependencies (bundled into dist/).
+node_modules/
+
+# Git and editor files.
+.gitignore
+.vscode/
+
+# Package manager files.
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
