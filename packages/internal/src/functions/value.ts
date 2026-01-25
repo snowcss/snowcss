@@ -5,8 +5,8 @@ import { hash } from '#utils'
 import type { ValueModifier } from '#values'
 import { AlphaModifier, NegateModifier, UnitModifier } from '#values'
 
+import { SnowFunctionName } from './constants'
 import type { SnowFunction } from './index'
-import { SnowFunctionName } from './index'
 import { SnowFunctionParser } from './parser'
 
 /** Represents a parsed --value() CSS function call. */

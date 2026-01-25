@@ -2,7 +2,7 @@ import type { UserConfig } from 'tsdown'
 import { defineConfig } from 'tsdown'
 
 const config: UserConfig = defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/shared.ts'],
   format: ['esm', 'cjs'],
   dts: true,
 })
