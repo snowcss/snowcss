@@ -54,11 +54,14 @@ export function findAllFunctions(text: string, regions: Array<CssRegion>): Array
 
   for (const region of regions) {
     const cssContent = text.slice(region.start, region.end)
-    const [functions] = extract(cssContent)
 
-    for (const fn of functions) {
-      results.push(toFunctionCall(fn, region.start))
-    }
+    try {
+      const [functions] = extract(cssContent)
+
+      for (const fn of functions) {
+        results.push(toFunctionCall(fn, region.start))
+      }
+    } catch {}
   }
 
   return results
