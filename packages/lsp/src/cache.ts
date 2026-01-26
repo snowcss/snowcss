@@ -15,24 +15,15 @@ export class ConfigCache {
   /** Returns the config for a document, loading it if necessary. */
   async getForDocument(documentUri: string, workspaceRoots: Array<string>): Promise<Config | null> {
     const docPath = uriToPath(documentUri)
-
-    if (!docPath) {
-      return null
-    }
+    if (!docPath) return null
 
     // Check if any cached config covers this document.
     const cached = this.findCached(docPath)
-
-    if (cached) {
-      return cached
-    }
+    if (cached) return cached
 
     // Discover and load new config.
     const configPath = findNearestConfig(docPath, workspaceRoots)
-
-    if (!configPath) {
-      return null
-    }
+    if (!configPath) return null
 
     try {
       const config = await loadConfig({ exact: configPath })

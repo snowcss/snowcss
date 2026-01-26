@@ -10,8 +10,8 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 14)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.fn).toBe('token')
         expect(result.prefix).toBe('color')
         expect(result.quote).toBe('"')
       }
@@ -23,8 +23,8 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 21)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.fn).toBe('value')
         expect(result.prefix).toBe('size.spacing')
         expect(result.quote).toBe('"')
       }
@@ -36,8 +36,8 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 19)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.fn).toBe('token')
         expect(result.prefix).toBe('color.gray')
         expect(result.quote).toBe("'")
       }
@@ -49,8 +49,8 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 9)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.fn).toBe('token')
         expect(result.prefix).toBe('')
         expect(result.prefixStart).toBe(9)
       }
@@ -62,8 +62,8 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 9)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.fn).toBe('value')
         expect(result.prefix).toBe('')
       }
     })
@@ -74,9 +74,11 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 19)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
         expect(result.prefix).toBe('color.prim')
-        expect(result.prefixStart).toBe(9) // Position of 'c' in 'color'.
+        // Position of 'c' in 'color'.
+        expect(result.prefixStart).toBe(9)
       }
     })
 
@@ -86,8 +88,10 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 14)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.pathEnd).toBe(22) // Position of closing quote.
+        // Position of closing quote.
+        expect(result.pathEnd).toBe(22)
       }
     })
 
@@ -97,8 +101,8 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 14)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.fn).toBe('token')
         expect(result.prefix).toBe('col')
       }
     })
@@ -109,6 +113,7 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 28)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
         expect(result.prefix).toBe('font-family_primary')
       }
@@ -123,6 +128,7 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 25)
 
       expect(result.type).toBe('modifier')
+
       if (result.type === 'modifier') {
         expect(result.path).toBe('color.red.500')
         expect(result.kind).toBe('alpha')
@@ -135,6 +141,7 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 28)
 
       expect(result.type).toBe('modifier')
+
       if (result.type === 'modifier') {
         expect(result.path).toBe('color.blue.600')
         expect(result.kind).toBe('alpha')
@@ -147,6 +154,7 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 30)
 
       expect(result.type).toBe('modifier')
+
       if (result.type === 'modifier') {
         expect(result.path).toBe('color.green.400')
         expect(result.kind).toBe('alpha')
@@ -159,6 +167,7 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 19)
 
       expect(result.type).toBe('modifier')
+
       if (result.type === 'modifier') {
         expect(result.path).toBe('size.4')
         expect(result.kind).toBeNull()
@@ -180,6 +189,7 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 29)
 
       expect(result.type).toBe('modifier')
+
       if (result.type === 'modifier') {
         expect(result.path).toBe('color.amber.300')
         expect(result.kind).toBe('alpha')
@@ -249,9 +259,106 @@ describe('getCursorContext', () => {
 
       // This should still detect path context since we found opening quote.
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.pathEnd).toBe(18) // No closing quote, so pathEnd equals offset.
+        // No closing quote, so pathEnd equals offset.
+        expect(result.pathEnd).toBe(18)
       }
+    })
+  })
+
+  describe('function context', () => {
+    it('detects -- prefix in value position', () => {
+      const text = '.class { color: -- }'
+      // Cursor after '--' -> offset 18.
+      const result = getCursorContext(text, 18)
+
+      expect(result.type).toBe('function')
+
+      if (result.type === 'function') {
+        expect(result.prefix).toBe('--')
+        expect(result.prefixStart).toBe(16)
+      }
+    })
+
+    it('detects partial --token prefix', () => {
+      const text = '.class { color: --tok }'
+      // Cursor after '--tok' -> offset 21.
+      const result = getCursorContext(text, 21)
+
+      expect(result.type).toBe('function')
+
+      if (result.type === 'function') {
+        expect(result.prefix).toBe('--tok')
+      }
+    })
+
+    it('detects full --token prefix without paren', () => {
+      const text = '.class { color: --token }'
+      // Cursor after '--token' -> offset 23.
+      const result = getCursorContext(text, 23)
+
+      expect(result.type).toBe('function')
+
+      if (result.type === 'function') {
+        expect(result.prefix).toBe('--token')
+      }
+    })
+
+    it('detects --value prefix', () => {
+      const text = '.class { background: --val }'
+      // Cursor after '--val' -> offset 26.
+      const result = getCursorContext(text, 26)
+
+      expect(result.type).toBe('function')
+
+      if (result.type === 'function') {
+        expect(result.prefix).toBe('--val')
+      }
+    })
+
+    it('detects full --value prefix', () => {
+      const text = '.class { width: --value }'
+      // Cursor after '--value' -> offset 23.
+      const result = getCursorContext(text, 23)
+
+      expect(result.type).toBe('function')
+
+      if (result.type === 'function') {
+        expect(result.prefix).toBe('--value')
+      }
+    })
+
+    it('returns none for -- in selector position', () => {
+      const text = '.class-- { color: red; }'
+      // Cursor after '--' in selector -> offset 8.
+      const result = getCursorContext(text, 8)
+
+      expect(result.type).toBe('none')
+    })
+
+    it('returns none for -- after opening brace without colon', () => {
+      const text = '.class { -- }'
+      // No colon before --, not in value position -> offset 11.
+      const result = getCursorContext(text, 11)
+
+      expect(result.type).toBe('none')
+    })
+
+    it('returns none for invalid function prefix', () => {
+      const text = '.class { color: --custom }'
+      // --custom doesn't match --token or --value -> offset 24.
+      const result = getCursorContext(text, 24)
+
+      expect(result.type).toBe('none')
+    })
+
+    it('returns none for single dash', () => {
+      const text = '.class { color: - }'
+      // Single dash is not a valid prefix -> offset 17.
+      const result = getCursorContext(text, 17)
+
+      expect(result.type).toBe('none')
     })
   })
 
@@ -262,11 +369,12 @@ describe('getCursorContext', () => {
 }`
       // Find position inside the string.
       const tokenStart = text.indexOf('"') + 1
-      const result = getCursorContext(text, tokenStart + 5) // After 'color'.
+      // After 'color'.
+      const result = getCursorContext(text, tokenStart + 5)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.fn).toBe('token')
         expect(result.prefix).toBe('color')
       }
     })
@@ -275,11 +383,12 @@ describe('getCursorContext', () => {
       const text = 'calc(100% - --value("size.4"))'
       // Cursor inside --value path.
       const valueStart = text.indexOf('--value("') + 9
-      const result = getCursorContext(text, valueStart + 4) // After 'size'.
+      // After 'size'.
+      const result = getCursorContext(text, valueStart + 4)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
-        expect(result.fn).toBe('value')
         expect(result.prefix).toBe('size')
       }
     })
@@ -290,6 +399,7 @@ describe('getCursorContext', () => {
       const result = getCursorContext(text, 17)
 
       expect(result.type).toBe('path')
+
       if (result.type === 'path') {
         expect(result.prefix).toBe('size.1.5')
       }

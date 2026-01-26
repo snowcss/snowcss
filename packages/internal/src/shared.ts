@@ -8,6 +8,7 @@ export {
 // Cursor.
 export {
   BackwardScanner,
+  isAlpha,
   isDigit,
   isIdentChar,
   isInsidePath,

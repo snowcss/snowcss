@@ -1,8 +1,11 @@
 import type { Config } from '@snowcss/internal'
+import { SnowFunctionName } from '@snowcss/internal'
+import { isQuote, isWhitespace } from '@snowcss/internal/shared'
 import type { CompletionItem, CompletionList, CompletionParams, Range } from 'vscode-languageserver'
-import { CompletionItemKind } from 'vscode-languageserver'
+import { CompletionItemKind, InsertTextFormat } from 'vscode-languageserver'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
+import type { CssRegion } from '#parsing'
 import { getCssRegions, getCursorContext, isInCssRegion } from '#parsing'
 import { formatTokenDocumentation, getTokenKind, isColorToken } from '#utils'
 
@@ -52,6 +55,20 @@ const ALPHA_COMPLETIONS: Array<CompletionItem> = Array.from({ length: 20 }, (_, 
   }
 })
 
+// Static function name completions.
+const FUNCTION_COMPLETIONS: Array<{ label: string; detail: string; fnName: string }> = [
+  {
+    label: '--token()',
+    detail: 'Reference token as CSS variable',
+    fnName: SnowFunctionName.Token,
+  },
+  {
+    label: '--value()',
+    detail: 'Inline token value with optional modifiers',
+    fnName: SnowFunctionName.Value,
+  },
+]
+
 /** Handles completion requests. */
 export function handleCompletion(
   params: CompletionParams,
@@ -89,6 +106,20 @@ export function handleCompletion(
         isIncomplete: false,
         items: ctx.kind === 'alpha' ? getAlphaCompletions() : getModifierCompletions(),
       }
+
+    case 'function': {
+      const range = {
+        start: document.positionAt(ctx.prefixStart),
+        end: document.positionAt(offset),
+      }
+
+      const quote = inferQuoteStyle(text, regions)
+
+      return {
+        isIncomplete: false,
+        items: getFunctionCompletions(ctx.prefix, range, quote),
+      }
+    }
 
     case 'none':
       return EMPTY_COMPLETION_LIST
@@ -132,4 +163,56 @@ function getModifierCompletions(): Array<CompletionItem> {
 /** Returns completion items for alpha percentages. */
 function getAlphaCompletions(): Array<CompletionItem> {
   return ALPHA_COMPLETIONS
+}
+
+/** Returns completion items for Snow function names. */
+function getFunctionCompletions(
+  prefix: string,
+  range: Range,
+  quote: string,
+): Array<CompletionItem> {
+  return FUNCTION_COMPLETIONS.filter((item) => item.fnName.startsWith(prefix)).map((item) => ({
+    label: item.label,
+    kind: CompletionItemKind.Function,
+    detail: item.detail,
+    filterText: item.label,
+    insertTextFormat: InsertTextFormat.Snippet,
+    textEdit: {
+      range,
+      newText: `${item.fnName}(${quote}$0${quote})`,
+    },
+  }))
+}
+
+/** Infers quote style from existing Snow functions in CSS regions. */
+function inferQuoteStyle(text: string, regions: Array<CssRegion>): string {
+  const functions = [`${SnowFunctionName.Token}(`, `${SnowFunctionName.Value}(`]
+
+  for (const region of regions) {
+    const content = text.slice(region.start, region.end)
+
+    for (const fn of functions) {
+      const idx = content.indexOf(fn)
+
+      if (idx === -1) {
+        continue
+      }
+
+      // Skip whitespace after opening paren.
+      let pos = idx + fn.length
+
+      while (pos < content.length && isWhitespace(content[pos])) {
+        pos++
+      }
+
+      // Check for quote character.
+      const char = content[pos]
+
+      if (isQuote(char)) {
+        return char
+      }
+    }
+  }
+
+  return '"'
 }

@@ -92,14 +92,12 @@ export function isDigit(ch: string): boolean {
   return ch >= '0' && ch <= '9'
 }
 
+/** Checks if character is an alphabetic character. */
+export function isAlpha(ch: string): boolean {
+  return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
+}
+
 /** Checks if character is alphanumeric, underscore, dash, or dot. */
 export function isIdentChar(ch: string): boolean {
-  return (
-    (ch >= 'a' && ch <= 'z') ||
-    (ch >= 'A' && ch <= 'Z') ||
-    (ch >= '0' && ch <= '9') ||
-    ch === '_' ||
-    ch === '-' ||
-    ch === '.'
-  )
+  return isAlpha(ch) || isDigit(ch) || ch === '_' || ch === '-' || ch === '.'
 }
