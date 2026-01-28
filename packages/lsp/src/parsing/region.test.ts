@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import type { CssRegion } from './region'
 import { getCssRegions, isInCssRegion } from './region'
 
 describe('getCssRegions', () => {
@@ -203,37 +204,37 @@ body { font-family: sans-serif; }
 
 describe('isInCssRegion', () => {
   it('returns true when offset is inside a region', () => {
-    const regions = [{ start: 10, end: 50 }]
+    const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
     expect(isInCssRegion(regions, 25)).toBe(true)
   })
 
   it('returns true when offset equals region start', () => {
-    const regions = [{ start: 10, end: 50 }]
+    const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
     expect(isInCssRegion(regions, 10)).toBe(true)
   })
 
   it('returns true when offset equals region end', () => {
-    const regions = [{ start: 10, end: 50 }]
+    const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
     expect(isInCssRegion(regions, 50)).toBe(true)
   })
 
   it('returns false when offset is before region', () => {
-    const regions = [{ start: 10, end: 50 }]
+    const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
     expect(isInCssRegion(regions, 5)).toBe(false)
   })
 
   it('returns false when offset is after region', () => {
-    const regions = [{ start: 10, end: 50 }]
+    const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
     expect(isInCssRegion(regions, 55)).toBe(false)
   })
 
   it('returns false for empty regions array', () => {
-    const regions: Array<{ start: number; end: number }> = []
+    const regions: Array<CssRegion> = []
     expect(isInCssRegion(regions, 25)).toBe(false)
   })
 
   it('returns true when offset is in any of multiple regions', () => {
-    const regions = [
+    const regions: Array<CssRegion> = [
       { start: 10, end: 30 },
       { start: 50, end: 80 },
       { start: 100, end: 150 },
@@ -245,7 +246,7 @@ describe('isInCssRegion', () => {
   })
 
   it('returns false when offset is between regions', () => {
-    const regions = [
+    const regions: Array<CssRegion> = [
       { start: 10, end: 30 },
       { start: 50, end: 80 },
     ]
