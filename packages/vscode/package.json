@@ -1,0 +1,106 @@
+{
+  "name": "snowcssx",
+  "displayName": "Snow CSS",
+  "description": "Visual Studio Code extension for Snow CSS",
+  "version": "0.1.0",
+  "private": true,
+  "preview": true,
+  "publisher": "snowcss",
+  "author": "Vladislav Mamon <hello@nrsk.dev>",
+  "icon": "./assets/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snowcss/snowcss.git",
+    "directory": "packages/vscode"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/extension.mjs",
+  "engines": {
+    "vscode": "^1.108.1"
+  },
+  "activationEvents": [
+    "workspaceContains:**/snow.config.{ts,cts,mts,js,cjs,mjs}"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "snowcss.restartServer",
+        "title": "Restart Language Server",
+        "category": "Snow CSS"
+      },
+      {
+        "command": "snowcss.showOutput",
+        "title": "Show Output",
+        "category": "Snow CSS"
+      },
+      {
+        "command": "snowcss.openConfig",
+        "title": "Open Config",
+        "category": "Snow CSS"
+      },
+      {
+        "command": "snowcss.reloadConfig",
+        "title": "Reload Config",
+        "category": "Snow CSS"
+      }
+    ],
+    "configuration": {
+      "title": "Snow CSS",
+      "properties": {
+        "snowcss.lsp.path": {
+          "type": "string",
+          "default": null,
+          "description": "Path to the snowcss-lsp executable. If not set, the extension will search in node_modules and global installations."
+        },
+        "snowcss.hover.disableBuiltinCss": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disable the built-in CSS hover to show only Snow CSS token info."
+        }
+      }
+    },
+    "css": {
+      "customData": [
+        "./syntaxes/snowcss.css-data.json"
+      ]
+    },
+    "grammars": [
+      {
+        "scopeName": "source.css.snowcss",
+        "path": "./syntaxes/snowcss.tmLanguage.json",
+        "injectTo": [
+          "source.css",
+          "source.css.scss",
+          "source.css.sass",
+          "source.css.less",
+          "source.svelte",
+          "source.astro",
+          "source.vue",
+          "source.vue-html",
+          "source.vue-postcss"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "@snowcss/internal": "workspace:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/vscode": "^1.108.1",
+    "@vscode/vsce": "^3.7.1",
+    "tsdown": "catalog:",
+    "vscode-languageclient": "10.0.0-next.19"
+  }
+}

@@ -4,6 +4,7 @@ packages:
 
 catalog:
   '@types/node': ^24.10.4
+  jiti: 2.6.1
   rollup: 4.55.1
   tsdown: 0.18.2
   vite: 7.3.0
