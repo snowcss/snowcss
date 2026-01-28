@@ -1,14 +1,10 @@
 import type { Config } from '@snowcss/internal'
-import { Path } from '@snowcss/internal'
-import type {
-  ColorInformation,
-  ColorPresentation,
-  ColorPresentationParams,
-} from 'vscode-languageserver'
+import { AlphaModifier, Path } from '@snowcss/internal'
+import type { ColorInformation } from 'vscode-languageserver'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
 import { getCssRegions } from '#parsing'
-import { findAllFunctions, getColorValue, toVscodeColor } from '#utils'
+import { findAllFunctions, getColorValues, toVscodeColor } from '#utils'
 
 /** Handles document color requests (for inline color decorators). */
 export function handleDocumentColor(
@@ -28,45 +24,29 @@ export function handleDocumentColor(
       continue
     }
 
-    // Check if the token has a color value.
-    const colorValue = getColorValue(token)
+    // Extract all color values from the token.
+    const colorValues = getColorValues(token)
 
-    if (!colorValue) {
-      continue
-    }
+    for (const colorValue of colorValues) {
+      let rgba = colorValue.toRgba()
 
-    // Extract RGBA.
-    let rgba = colorValue.toRgba()
-
-    // Handle alpha modifier if present (e.g., "/ 50%").
-    if (fn.modifier) {
-      const alphaMatch = fn.modifier.match(/\/\s*(\d+)%/)
-
-      if (alphaMatch) {
+      // Handle alpha modifier if present.
+      if (fn.modifier instanceof AlphaModifier) {
         rgba = {
           ...rgba,
-          alpha: parseInt(alphaMatch[1], 10) / 100,
+          alpha: fn.modifier.value,
         }
       }
-    }
 
-    colors.push({
-      color: toVscodeColor(rgba),
-      range: {
-        start: document.positionAt(fn.range.start),
-        end: document.positionAt(fn.range.end),
-      },
-    })
+      colors.push({
+        color: toVscodeColor(rgba),
+        range: {
+          start: document.positionAt(fn.range.start),
+          end: document.positionAt(fn.range.end),
+        },
+      })
+    }
   }
 
   return colors
-}
-
-/** Handles color presentation requests. Returns empty since colors are defined in config. */
-export function handleColorPresentation(
-  _params: ColorPresentationParams,
-  _document: TextDocument,
-): Array<ColorPresentation> {
-  // Colors are defined in the config, not editable in CSS.
-  return []
 }

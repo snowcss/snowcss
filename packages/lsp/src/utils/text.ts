@@ -1,11 +1,5 @@
 import type { SnowFunction, SnowFunctionName, ValueModifier } from '@snowcss/internal'
-import {
-  AlphaModifier,
-  NegateModifier,
-  UnitModifier,
-  ValueFunction,
-  extract,
-} from '@snowcss/internal'
+import { ValueFunction, extract } from '@snowcss/internal'
 import type { Position } from 'vscode-languageserver'
 
 import type { CssRegion } from '#parsing'
@@ -20,27 +14,16 @@ interface Range {
 export interface FunctionCall {
   name: SnowFunctionName
   path: string
-  modifier: string | null
+  modifier: ValueModifier | null
   range: Range
-}
-
-/** Converts a ValueModifier to its string representation. */
-function modifierToString(modifier: ValueModifier | null): string | null {
-  if (modifier instanceof AlphaModifier) return `/ ${modifier.value * 100}%`
-  if (modifier instanceof UnitModifier) return `to ${modifier.unit}`
-  if (modifier instanceof NegateModifier) return 'negate'
-
-  return null
 }
 
 /** Maps a SnowFunction to FunctionCall, adjusting offset by region start. */
 function toFunctionCall(fn: SnowFunction, regionStart: number): FunctionCall {
-  const modifier = fn instanceof ValueFunction ? modifierToString(fn.modifier) : null
-
   return {
     name: fn.name,
     path: fn.path.toDotPath(),
-    modifier,
+    modifier: fn instanceof ValueFunction ? fn.modifier : null,
     range: {
       start: fn.location.start + regionStart,
       end: fn.location.end + regionStart,

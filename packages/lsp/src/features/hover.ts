@@ -31,7 +31,7 @@ export function handleHover(
     return null
   }
 
-  const contents = formatTokenDocumentation(token, config)
+  const contents = formatTokenDocumentation(token, config, fnCall.modifier)
 
   return {
     contents,

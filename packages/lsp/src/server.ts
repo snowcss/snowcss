@@ -14,12 +14,7 @@ import type { TextDocuments } from 'vscode-languageserver/node'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
 import { ConfigCache } from './cache'
-import {
-  handleColorPresentation,
-  handleCompletion,
-  handleDocumentColor,
-  handleHover,
-} from './features'
+import { handleCompletion, handleDocumentColor, handleHover } from './features'
 import { normalizeFsPath, uriToPath } from './utils'
 
 /** Snow CSS LSP server. */
@@ -72,7 +67,9 @@ export class SnowLspServer {
       textDocumentSync: TextDocumentSyncKind.Incremental,
       completionProvider: {
         // Trigger on quotes (start of path), dot (segment separator), slash (modifier),
-        // and all alphanumeric chars for smooth editing like Tailwind.
+        // and all alphanumeric chars for smooth editing.
+        //
+        // TODO: Maybe make this configurable?
         triggerCharacters: [
           ...Array.from(`"'./-_`),
           ...Array.from('abcdefghijklmnopqrstuvwxyz'),
@@ -165,10 +162,8 @@ export class SnowLspServer {
   }
 
   /** Handles color presentation requests. */
-  private handleColorPresentation(params: ColorPresentationParams) {
-    const document = this.documents.get(params.textDocument.uri)
-    if (!document) return []
-
-    return handleColorPresentation(params, document)
+  private handleColorPresentation(_params: ColorPresentationParams) {
+    // Colors are defined in the config, not editable in CSS.
+    return []
   }
 }

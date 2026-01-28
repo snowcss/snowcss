@@ -12,8 +12,7 @@ export function getTokenKind(token: Token): CompletionItemKind {
   return isColorToken(token) ? CompletionItemKind.Color : CompletionItemKind.Value
 }
 
-/** Extracts the ColorValue from a token if present. */
-export function getColorValue(token: Token): ColorValue | null {
-  const colorValue = token.values.find((value) => value instanceof ColorValue)
-  return colorValue instanceof ColorValue ? colorValue : null
+/** Extracts all ColorValues from a token. */
+export function getColorValues(token: Token): Array<ColorValue> {
+  return token.values.filter((value): value is ColorValue => value instanceof ColorValue)
 }
