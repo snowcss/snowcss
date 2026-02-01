@@ -145,6 +145,7 @@ function getTokenPathCompletions(
       detail: token.path.toCssVar(),
       filterText: dotPath,
       documentation: isColorToken(token) ? token.raw : formatTokenDocumentation(token, config),
+      insertTextFormat: InsertTextFormat.Snippet,
       textEdit: {
         range,
         newText: dotPath + quote,

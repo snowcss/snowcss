@@ -91,7 +91,13 @@ export class SnowLspServer {
       }
     }
 
-    return { capabilities }
+    return {
+      capabilities,
+      serverInfo: {
+        name: 'snowcss-lsp',
+        version: __VERSION__,
+      },
+    }
   }
 
   /** Handles the initialized notification. */
