@@ -58,8 +58,9 @@ export class ConfigCache {
   private findCached(docPath: string): Config | null {
     for (const [configPath, config] of this.cache) {
       const configDir = dirname(configPath)
+      const configDirFixed = configDir.endsWith('/') ? configDir : configDir + '/'
 
-      if (docPath.startsWith(configDir)) {
+      if (docPath.startsWith(configDirFixed)) {
         return config
       }
     }
