@@ -144,6 +144,7 @@ function getTokenPathCompletions(
       kind: getTokenKind(token),
       detail: token.path.toCssVar(),
       filterText: dotPath,
+      sortText: naturalSortKey(token.path.segments),
       documentation: isColorToken(token) ? token.raw : formatTokenDocumentation(token, config),
       insertTextFormat: InsertTextFormat.Snippet,
       textEdit: {
@@ -154,6 +155,16 @@ function getTokenPathCompletions(
   }
 
   return items
+}
+
+/** Generates a sort key that orders numeric segments naturally. */
+function naturalSortKey(segments: Array<string>): string {
+  return segments
+    .map((segment) => {
+      const num = Number(segment)
+      return Number.isNaN(num) ? segment : String(Math.round(num * 1_000)).padStart(10, '0')
+    })
+    .join('.')
 }
 
 /** Returns completion items for --value() modifiers. */
