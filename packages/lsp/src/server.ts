@@ -46,6 +46,7 @@ export class SnowLspServer {
     this.connection.onDocumentColor(this.handleDocumentColor.bind(this))
     this.connection.onColorPresentation(this.handleColorPresentation.bind(this))
     this.connection.onRequest('snowcss/reloadConfig', this.handleReloadConfig.bind(this))
+    this.connection.onShutdown(this.handleShutdown.bind(this))
   }
 
   /** Handles the initialize request. */
@@ -67,15 +68,9 @@ export class SnowLspServer {
       textDocumentSync: TextDocumentSyncKind.Incremental,
       completionProvider: {
         // Trigger on quotes (start of path), dot (segment separator), slash (modifier),
-        // and all alphanumeric chars for smooth editing.
-        //
-        // TODO: Maybe make this configurable?
-        triggerCharacters: [
-          ...Array.from(`"'./-_`),
-          ...Array.from('abcdefghijklmnopqrstuvwxyz'),
-          ...Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
-          ...Array.from('0123456789'),
-        ],
+        // and dashes/underscores (function name and path chars). Client re-filtering
+        // handles the rest.
+        triggerCharacters: [...Array.from(`"'./-_`)],
         resolveProvider: false,
       },
       hoverProvider: true,
@@ -123,6 +118,11 @@ export class SnowLspServer {
         this.configCache.invalidate(normalizeFsPath(configPath))
       }
     }
+  }
+
+  /** Handles server shutdown. */
+  private handleShutdown(): void {
+    this.configCache.invalidateAll()
   }
 
   /** Handles the reload config request. */

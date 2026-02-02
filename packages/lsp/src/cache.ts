@@ -22,10 +22,10 @@ export class ConfigCache {
     if (cached) return cached
 
     // Discover and load new config.
-    const configPath = findNearestConfig(docPath, workspaceRoots)
-    if (!configPath) return null
-
     try {
+      const configPath = findNearestConfig(docPath, workspaceRoots)
+      if (!configPath) return null
+
       const config = await loadConfig({ exact: configPath })
 
       this.cache.set(normalizeFsPath(configPath), config)
