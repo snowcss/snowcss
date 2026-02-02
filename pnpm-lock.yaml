@@ -79,6 +79,28 @@ importers:
         specifier: ^3.1.4
         version: 3.2.1(typescript@5.9.3)
 
+  editors/vscode:
+    dependencies:
+      '@snowcss/internal':
+        specifier: 'workspace:'
+        version: link:../../packages/internal
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.4
+      '@types/vscode':
+        specifier: ^1.108.1
+        version: 1.108.1
+      '@vscode/vsce':
+        specifier: ^3.7.1
+        version: 3.7.1
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.18.2(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))
+      vscode-languageclient:
+        specifier: 10.0.0-next.19
+        version: 10.0.0-next.19
+
   packages/internal:
     dependencies:
       '@fastify/deepmerge':
@@ -196,28 +218,6 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.0.16(@types/node@24.10.4)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2)
-
-  packages/vscode:
-    dependencies:
-      '@snowcss/internal':
-        specifier: 'workspace:'
-        version: link:../internal
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 24.10.4
-      '@types/vscode':
-        specifier: ^1.108.1
-        version: 1.108.1
-      '@vscode/vsce':
-        specifier: ^3.7.1
-        version: 3.7.1
-      tsdown:
-        specifier: 'catalog:'
-        version: 0.18.2(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))
-      vscode-languageclient:
-        specifier: 10.0.0-next.19
-        version: 10.0.0-next.19
 
 packages:
 

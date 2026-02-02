@@ -8,13 +8,15 @@
     "changeset": "changeset",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "playground:build": "pnpm --filter playground build",
-    "playground:dev": "pnpm --filter playground dev",
+    "playground:build": "pnpm --filter @snowcs/playground build",
+    "playground:dev": "pnpm --filter @snowcss/playground dev",
     "prepare": "lefthook install",
     "release": "pnpm build && changeset publish",
     "test": "pnpm --parallel --filter './packages/**' test",
     "typecheck": "pnpm --parallel --filter './packages/**' typecheck",
-    "version": "changeset version"
+    "version": "changeset version",
+    "vscode:build": "pnpm --filter './editors/vscode' build",
+    "vscode:package": "pnpm --filter './editors/vscode' package"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.10",

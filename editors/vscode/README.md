@@ -1,4 +1,4 @@
-# snowcssx
+# snowcss-intellisense
 
 Visual Studio Code extension for Snow CSS.
 
