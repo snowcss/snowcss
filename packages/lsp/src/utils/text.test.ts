@@ -2,70 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { CssRegion } from '#parsing'
 
-import { findAllFunctions, findFunctionAtOffset, indexToPosition } from './text'
-
-describe('indexToPosition', () => {
-  it('returns line 0, character 0 for index 0', () => {
-    const result = indexToPosition('hello', 0)
-
-    expect(result.line).toBe(0)
-    expect(result.character).toBe(0)
-  })
-
-  it('handles single line text', () => {
-    const result = indexToPosition('hello world', 6)
-
-    expect(result.line).toBe(0)
-    expect(result.character).toBe(6)
-  })
-
-  it('handles multiple lines', () => {
-    const text = 'line1\nline2\nline3'
-    const result = indexToPosition(text, 8)
-
-    expect(result.line).toBe(1)
-    expect(result.character).toBe(2)
-  })
-
-  it('handles index at newline character', () => {
-    const text = 'line1\nline2'
-    const result = indexToPosition(text, 5)
-
-    expect(result.line).toBe(0)
-    expect(result.character).toBe(5)
-  })
-
-  it('handles index right after newline', () => {
-    const text = 'line1\nline2'
-    const result = indexToPosition(text, 6)
-
-    expect(result.line).toBe(1)
-    expect(result.character).toBe(0)
-  })
-
-  it('handles index beyond text length', () => {
-    const text = 'hi'
-    const result = indexToPosition(text, 100)
-
-    expect(result.line).toBe(0)
-    expect(result.character).toBe(2)
-  })
-
-  it('handles empty string', () => {
-    const result = indexToPosition('', 0)
-
-    expect(result.line).toBe(0)
-    expect(result.character).toBe(0)
-  })
-
-  it('handles multiple consecutive newlines', () => {
-    const text = 'a\n\n\nb'
-    const result = indexToPosition(text, 4)
-
-    expect(result.line).toBe(3)
-    expect(result.character).toBe(0)
-  })
-})
+import { findAllFunctions, findFunctionAtOffset } from './text'
 
 describe('findAllFunctions', () => {
   it('finds --token() calls in CSS region', () => {

@@ -56,7 +56,6 @@ export function findFunctionAtOffset(
   offset: number,
   regions: Array<CssRegion>,
 ): FunctionCall | null {
-  // Early exit if offset is not in a CSS region.
   if (!isInCssRegion(regions, offset)) {
     return null
   }
@@ -70,21 +69,4 @@ export function findFunctionAtOffset(
   }
 
   return null
-}
-
-/** Converts a text offset to an LSP Position (line/character). */
-export function indexToPosition(text: string, index: number): Position {
-  let line = 0
-  let character = 0
-
-  for (let idx = 0; idx < index && idx < text.length; idx++) {
-    if (text[idx] === '\n') {
-      line++
-      character = 0
-    } else {
-      character++
-    }
-  }
-
-  return { line, character }
 }
