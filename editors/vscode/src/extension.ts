@@ -9,15 +9,20 @@ import { startClient, stopClient } from './lsp'
 /** Applies the CSS hover setting based on Snow CSS configuration. */
 async function applyCssHoverSetting(): Promise<void> {
   const snowConfig = workspace.getConfiguration('snowcss')
-  const disableBuiltinCss = snowConfig.get<boolean>('hover.disableBuiltinCss', false)
+  const inspection = snowConfig.inspect<boolean>('hover.disableBuiltinCss')
+
+  // Only act if the user has explicitly configured the setting.
+  const explicit =
+    inspection?.globalValue ?? inspection?.workspaceValue ?? inspection?.workspaceFolderValue
+
+  if (explicit === undefined) return
 
   // Toggle VS Code CSS hover settings. This is the best we can do to avoid CSS docs and references
   // cluttering the hover contents.
   const cssConfig = workspace.getConfiguration('css')
-  const enabled = !disableBuiltinCss
 
-  await cssConfig.update('hover.documentation', enabled, ConfigurationTarget.Workspace)
-  await cssConfig.update('hover.references', enabled, ConfigurationTarget.Workspace)
+  await cssConfig.update('hover.documentation', !explicit, ConfigurationTarget.Workspace)
+  await cssConfig.update('hover.references', !explicit, ConfigurationTarget.Workspace)
 }
 
 /** Handles document changes to trigger completions inside Snow CSS paths. */
@@ -50,13 +55,10 @@ function handleDocumentChange(event: TextDocumentChangeEvent): void {
 }
 
 export async function activate(context: ExtensionContext): Promise<void> {
-  // Register commands early so they're available even if LSP fails.
   registerCommands(context)
 
-  // Apply CSS hover setting on activation.
   await applyCssHoverSetting()
 
-  // Watch for setting changes.
   context.subscriptions.push(
     workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('snowcss.hover.disableBuiltinCss')) {
@@ -65,11 +67,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   )
 
-  // Watch for document changes to trigger completions inside Snow CSS paths.
   context.subscriptions.push(workspace.onDidChangeTextDocument(handleDocumentChange))
 
   let serverPath = await findLspExecutable()
-
   if (!serverPath) {
     const installed = await promptInstallLsp()
 
