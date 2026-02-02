@@ -189,6 +189,7 @@ function getFunctionCompletions(
     detail: item.detail,
     filterText: item.label,
     insertTextFormat: InsertTextFormat.Snippet,
+    command: Command.create('Trigger Suggest', 'editor.action.triggerSuggest'),
     textEdit: {
       range,
       newText: `${item.fnName}(${quote}$0${quote})`,
