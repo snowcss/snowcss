@@ -6,7 +6,7 @@ import { CompletionItemKind, InsertTextFormat } from 'vscode-languageserver'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
 import type { CssRegion } from '#parsing'
-import { getCssRegions, getCursorContext, isInCssRegion } from '#parsing'
+import { getCssRegions, getCursorContext, insideAnyCssRegion } from '#parsing'
 import { formatTokenDocumentation, getTokenKind, isColorToken } from '#utils'
 
 // Empty completion result.
@@ -81,7 +81,7 @@ export function handleCompletion(
   // Check if we're in a CSS context.
   const regions = getCssRegions(text, document.languageId)
 
-  if (!isInCssRegion(regions, offset)) {
+  if (!insideAnyCssRegion(regions, offset)) {
     return EMPTY_COMPLETION_LIST
   }
 

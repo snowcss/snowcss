@@ -4,20 +4,15 @@ export interface CssRegion {
   end: number
 }
 
-/** Result of finding a style tag opening. */
-interface StyleOpenResult {
-  contentStart: number
-}
-
 // Language IDs that are pure CSS.
 const CSS_LANGUAGES = ['css', 'sass', 'postcss']
 
 // Language IDs that may contain CSS in style blocks.
 const MARKUP_LANGUAGES = ['vue', 'svelte', 'astro', 'html']
 
-// Opening and closing tags for style blocks.
-const STYLE_OPEN = '<style'
-const STYLE_CLOSE = '</style>'
+// Patterns for style block detection (case-insensitive).
+const STYLE_OPEN_RE = /<style(?=[\s>]|$)/gi
+const STYLE_CLOSE_RE = /<\/style>/gi
 
 /** Returns CSS regions in the document based on language. */
 export function getCssRegions(text: string, languageId: string): Array<CssRegion> {
@@ -38,28 +33,42 @@ export function getCssRegions(text: string, languageId: string): Array<CssRegion
 }
 
 /** Checks if offset is inside any CSS region. */
-export function isInCssRegion(regions: Array<CssRegion>, offset: number): boolean {
-  return regions.some((r) => offset >= r.start && offset <= r.end)
+export function insideAnyCssRegion(regions: Array<CssRegion>, offset: number): boolean {
+  return regions.some((it) => insideCssRegion(it, offset))
+}
+
+/** Checks if offset is inside a given CSS region. */
+export function insideCssRegion(region: CssRegion, offset: number): boolean {
+  return offset >= region.start && offset <= region.end
 }
 
 /** Finds all style block regions in markup text. */
 function findStyleBlocks(text: string): Array<CssRegion> {
   const regions: Array<CssRegion> = []
-  let pos = 0
 
-  while (pos < text.length) {
-    const openResult = findStyleOpen(text, pos)
+  // Reset regex state for each call.
+  STYLE_OPEN_RE.lastIndex = 0
 
-    if (!openResult) {
+  let openMatch: RegExpExecArray | null
+
+  while ((openMatch = STYLE_OPEN_RE.exec(text)) !== null) {
+    // Find the closing '>' of the opening tag.
+    const closeAngle = text.indexOf('>', openMatch.index + openMatch[0].length)
+
+    if (closeAngle === -1) {
       break
     }
 
-    const closePos = text.indexOf(STYLE_CLOSE, openResult.contentStart)
+    const contentStart = closeAngle + 1
 
-    if (closePos === -1) {
+    // Find the closing </style> tag.
+    STYLE_CLOSE_RE.lastIndex = contentStart
+    const closeMatch = STYLE_CLOSE_RE.exec(text)
+
+    if (!closeMatch) {
       // Unclosed style block extends to end.
       regions.push({
-        start: openResult.contentStart,
+        start: contentStart,
         end: text.length,
       })
 
@@ -67,47 +76,13 @@ function findStyleBlocks(text: string): Array<CssRegion> {
     }
 
     regions.push({
-      start: openResult.contentStart,
-      end: closePos,
+      start: contentStart,
+      end: closeMatch.index,
     })
 
-    pos = closePos + STYLE_CLOSE.length
+    // Continue searching after the closing tag.
+    STYLE_OPEN_RE.lastIndex = closeMatch.index + closeMatch[0].length
   }
 
   return regions
-}
-
-/** Finds opening style tag and returns position after the closing '>'. */
-function findStyleOpen(text: string, startPos: number): StyleOpenResult | null {
-  // Find '<style' (case-insensitive for HTML).
-  let pos = startPos
-
-  while (pos < text.length) {
-    const idx = text.indexOf(STYLE_OPEN, pos)
-
-    if (idx === -1) {
-      return null
-    }
-
-    // Check it's not '<stylesheet' or similar.
-    const afterStyle = text[idx + STYLE_OPEN.length]
-
-    if (afterStyle && afterStyle !== '>' && afterStyle !== ' ' && afterStyle !== '\n') {
-      pos = idx + 1
-      continue
-    }
-
-    // Find the closing '>' of the opening tag.
-    const closeAngle = text.indexOf('>', idx + STYLE_OPEN.length)
-
-    if (closeAngle === -1) {
-      return null
-    }
-
-    return {
-      contentStart: closeAngle + 1,
-    }
-  }
-
-  return null
 }

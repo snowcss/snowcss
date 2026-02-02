@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { CssRegion } from './region'
-import { getCssRegions, isInCssRegion } from './region'
+import { getCssRegions, insideAnyCssRegion } from './region'
 
 describe('getCssRegions', () => {
   describe('pure CSS languages', () => {
@@ -205,32 +205,32 @@ body { font-family: sans-serif; }
 describe('isInCssRegion', () => {
   it('returns true when offset is inside a region', () => {
     const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
-    expect(isInCssRegion(regions, 25)).toBe(true)
+    expect(insideAnyCssRegion(regions, 25)).toBe(true)
   })
 
   it('returns true when offset equals region start', () => {
     const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
-    expect(isInCssRegion(regions, 10)).toBe(true)
+    expect(insideAnyCssRegion(regions, 10)).toBe(true)
   })
 
   it('returns true when offset equals region end', () => {
     const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
-    expect(isInCssRegion(regions, 50)).toBe(true)
+    expect(insideAnyCssRegion(regions, 50)).toBe(true)
   })
 
   it('returns false when offset is before region', () => {
     const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
-    expect(isInCssRegion(regions, 5)).toBe(false)
+    expect(insideAnyCssRegion(regions, 5)).toBe(false)
   })
 
   it('returns false when offset is after region', () => {
     const regions: Array<CssRegion> = [{ start: 10, end: 50 }]
-    expect(isInCssRegion(regions, 55)).toBe(false)
+    expect(insideAnyCssRegion(regions, 55)).toBe(false)
   })
 
   it('returns false for empty regions array', () => {
     const regions: Array<CssRegion> = []
-    expect(isInCssRegion(regions, 25)).toBe(false)
+    expect(insideAnyCssRegion(regions, 25)).toBe(false)
   })
 
   it('returns true when offset is in any of multiple regions', () => {
@@ -240,9 +240,9 @@ describe('isInCssRegion', () => {
       { start: 100, end: 150 },
     ]
 
-    expect(isInCssRegion(regions, 25)).toBe(true) // In first.
-    expect(isInCssRegion(regions, 65)).toBe(true) // In second.
-    expect(isInCssRegion(regions, 125)).toBe(true) // In third.
+    expect(insideAnyCssRegion(regions, 25)).toBe(true) // In first.
+    expect(insideAnyCssRegion(regions, 65)).toBe(true) // In second.
+    expect(insideAnyCssRegion(regions, 125)).toBe(true) // In third.
   })
 
   it('returns false when offset is between regions', () => {
@@ -251,6 +251,6 @@ describe('isInCssRegion', () => {
       { start: 50, end: 80 },
     ]
 
-    expect(isInCssRegion(regions, 40)).toBe(false) // Between regions.
+    expect(insideAnyCssRegion(regions, 40)).toBe(false) // Between regions.
   })
 })
