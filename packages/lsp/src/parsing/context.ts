@@ -132,7 +132,7 @@ function tryParseModifierContext(scanner: BackwardScanner): CursorContext | null
   }
 
   // Skip partial keyword (to, negate, px, rem).
-  while (scanner.hasMore() && isIdentChar(scanner.peek()) && !isQuote(scanner.peek())) {
+  while (scanner.hasMore() && isIdentChar(scanner.peek())) {
     scanner.advance()
   }
 
