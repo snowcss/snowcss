@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { value } from 'snowcss/client'
 
+  import Divider from './Divider.vue'
   import Info from './Info.vue'
 
   const sizes = Object.entries(value('size')).sort(([,a], [,b]) => {
@@ -74,7 +75,7 @@
 }
 
 .sizeLabel {
-  min-width: 180px;
+  min-width: --token('size.44');
   display: flex;
   justify-content: space-between;
   align-items: center;

@@ -2,16 +2,17 @@ import type { Config } from '@snowcss/internal'
 import { SnowFunctionName } from '@snowcss/internal'
 import { isQuote, isWhitespace } from '@snowcss/internal/shared'
 import type { CompletionItem, CompletionList, CompletionParams, Range } from 'vscode-languageserver'
-import { CompletionItemKind, InsertTextFormat } from 'vscode-languageserver'
+import { Command, CompletionItemKind, InsertTextFormat } from 'vscode-languageserver'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
 import type { CssRegion } from '#parsing'
 import { getCssRegions, getCursorContext, insideAnyCssRegion } from '#parsing'
 import { formatTokenDocumentation, getTokenKind, isColorToken } from '#utils'
 
-// Empty completion result.
+// Empty completion result. Marked incomplete so VS Code re-queries on each keystroke, ensuring
+// context transitions (e.g. `-` to `--`) aren't missed.
 const EMPTY_COMPLETION_LIST: CompletionList = {
-  isIncomplete: false,
+  isIncomplete: true,
   items: [],
 }
 
@@ -96,14 +97,14 @@ export function handleCompletion(
       }
 
       return {
-        isIncomplete: false,
+        isIncomplete: true,
         items: getTokenPathCompletions(config, range, ctx.quote),
       }
     }
 
     case 'modifier':
       return {
-        isIncomplete: false,
+        isIncomplete: true,
         items: ctx.kind === 'alpha' ? getAlphaCompletions() : getModifierCompletions(),
       }
 
@@ -116,7 +117,7 @@ export function handleCompletion(
       const quote = inferQuoteStyle(text, regions)
 
       return {
-        isIncomplete: false,
+        isIncomplete: true,
         items: getFunctionCompletions(ctx.prefix, range, quote),
       }
     }
@@ -188,6 +189,7 @@ function getFunctionCompletions(
     kind: CompletionItemKind.Function,
     detail: item.detail,
     filterText: item.label,
+    sortText: ` ${item.label}`,
     insertTextFormat: InsertTextFormat.Snippet,
     command: Command.create('Trigger Suggest', 'editor.action.triggerSuggest'),
     textEdit: {

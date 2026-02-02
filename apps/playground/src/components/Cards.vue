@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import Divider from './Divider.vue';
+  import Divider from './Divider.vue'
   import Info from './Info.vue'
 </script>
 
@@ -77,7 +77,7 @@ color: --token("color.gray.900");</pre>
 .card code {
   padding: --token('size.0.5') --token('size.1');
   border-radius: --token('radius.sm');
-  font-family: 'JetBrains Mono', monospace;
+  font-family: --token('font.mono');
   font-weight: 600;
   font-size: 0.9em;
   color: --token('color.blue.400');

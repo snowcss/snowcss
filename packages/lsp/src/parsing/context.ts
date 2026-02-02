@@ -232,10 +232,10 @@ function matchedSnowFunction(scanner: BackwardScanner): boolean {
   return scanner.skip(SnowFunctionName.Token) || scanner.skip(SnowFunctionName.Value)
 }
 
-/** Checks if prefix looks like a Snow function call. */
+/** Checks if prefix could be a Snow function call. */
 function looksLikeSnowFunction(prefix: string): boolean {
   return (
-    prefix.startsWith('--') &&
+    prefix.length > 0 &&
     (SnowFunctionName.Token.startsWith(prefix) || SnowFunctionName.Value.startsWith(prefix))
   )
 }

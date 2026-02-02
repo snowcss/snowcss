@@ -353,12 +353,56 @@ describe('getCursorContext', () => {
       expect(result.type).toBe('none')
     })
 
-    it('returns none for single dash', () => {
+    it('detects single dash as function prefix in value position', () => {
       const text = '.class { color: - }'
-      // Single dash is not a valid prefix -> offset 17.
+      // Single dash matches prefix of --token/--value -> offset 17.
       const result = getCursorContext(text, 17)
 
+      expect(result.type).toBe('function')
+
+      if (result.type === 'function') {
+        expect(result.prefix).toBe('-')
+        expect(result.prefixStart).toBe(16)
+      }
+    })
+
+    it('returns none for single dash in selector position', () => {
+      const text = '.class- { color: red; }'
+      // Single dash in selector, no colon before it -> offset 7.
+      const result = getCursorContext(text, 7)
+
       expect(result.type).toBe('none')
+    })
+
+    it('returns none for single dash after opening brace', () => {
+      const text = '.class { - }'
+      // No colon before dash -> offset 10.
+      const result = getCursorContext(text, 10)
+
+      expect(result.type).toBe('none')
+    })
+
+    it('returns none for single dash after semicolon', () => {
+      const text = '.class { color: red; - }'
+      // After semicolon, not in value position -> offset 22.
+      const result = getCursorContext(text, 22)
+
+      expect(result.type).toBe('none')
+    })
+
+    it('detects single dash in multiline value position', () => {
+      const text = `.class {
+  color: -
+}`
+      // Cursor after dash -> offset 18.
+      const offset = text.indexOf('-') + 1
+      const result = getCursorContext(text, offset)
+
+      expect(result.type).toBe('function')
+
+      if (result.type === 'function') {
+        expect(result.prefix).toBe('-')
+      }
     })
   })
 
