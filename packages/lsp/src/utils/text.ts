@@ -1,9 +1,8 @@
 import type { SnowFunction, SnowFunctionName, ValueModifier } from '@snowcss/internal'
 import { ValueFunction, extract } from '@snowcss/internal'
-import type { Position } from 'vscode-languageserver'
 
 import type { CssRegion } from '#parsing'
-import { isInCssRegion } from '#parsing'
+import { insideCssRegion } from '#parsing'
 
 interface Range {
   start: number
@@ -44,7 +43,9 @@ export function findAllFunctions(text: string, regions: Array<CssRegion>): Array
       for (const fn of functions) {
         results.push(toFunctionCall(fn, region.start))
       }
-    } catch {}
+    } catch {
+      // Parse errors are expected for incomplete CSS during editing.
+    }
   }
 
   return results
@@ -56,11 +57,10 @@ export function findFunctionAtOffset(
   offset: number,
   regions: Array<CssRegion>,
 ): FunctionCall | null {
-  if (!isInCssRegion(regions, offset)) {
-    return null
-  }
+  const region = regions.find((it) => insideCssRegion(it, offset))
+  if (!region) return null
 
-  const functions = findAllFunctions(text, regions)
+  const functions = findAllFunctions(text, [region])
 
   for (const fn of functions) {
     if (offset >= fn.range.start && offset <= fn.range.end) {
