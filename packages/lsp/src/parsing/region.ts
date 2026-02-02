@@ -90,7 +90,7 @@ function findStyleOpen(text: string, startPos: number): StyleOpenResult | null {
     }
 
     // Check it's not '<stylesheet' or similar.
-    const afterStyle = text[idx + 6]
+    const afterStyle = text[idx + STYLE_OPEN.length]
 
     if (afterStyle && afterStyle !== '>' && afterStyle !== ' ' && afterStyle !== '\n') {
       pos = idx + 1
@@ -98,7 +98,7 @@ function findStyleOpen(text: string, startPos: number): StyleOpenResult | null {
     }
 
     // Find the closing '>' of the opening tag.
-    const closeAngle = text.indexOf('>', idx + 6)
+    const closeAngle = text.indexOf('>', idx + STYLE_OPEN.length)
 
     if (closeAngle === -1) {
       return null
