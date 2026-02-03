@@ -23,6 +23,8 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
 
     steps:
       - name: Checkout
@@ -53,3 +55,71 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  vscode:
+    name: Release Visual Studio Code Extension Arfifact
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Get version
+        id: version
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs')
+            const pkg = JSON.parse(fs.readFileSync('editors/vscode/package.json', 'utf8'))
+            return pkg.version
+
+      - name: Get changelog
+        id: changelog
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs')
+            const os = require('os')
+            const path = require('path')
+
+            const changelog = fs.readFileSync('editors/vscode/CHANGELOG.md', 'utf8')
+
+            const sections = changelog.split(/^## /m)
+            const notes = sections.at(1)?.split('\n').slice(1).join('\n').trim() ?? ''
+
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'snowcss-'))
+            const tmpFile = path.join(tmpDir, 'changelog.md')
+
+            fs.writeFileSync(tmpFile, notes)
+
+            return tmpFile
+
+      - name: Package and Release
+        run: |
+          pnpm vscode:build
+          pnpm vscode:package
+
+          gh release create "snowcss-intellisense@${{ steps.version.outputs.result }}" \
+            editors/vscode/*.vsix \
+            --title "snowcss-intellisense@${{ steps.version.outputs.result }}" \
+            --notes-file "${{ steps.changelog.outputs.result }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
