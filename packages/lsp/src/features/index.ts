@@ -1,4 +1,5 @@
 export * from './color'
 export * from './completion'
+export * from './diagnostic'
 export * from './hover'
 export * from './inlayHint'

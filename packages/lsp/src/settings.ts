@@ -2,11 +2,13 @@ import type { Connection } from 'vscode-languageserver'
 
 /** LSP server settings synced from the client. */
 export interface Settings {
+  diagnostics: boolean
   inlayHints: boolean
 }
 
-/** Default settings (all opt-in features disabled). */
+/** Default settings. Diagnostics are opt-out, inlay hints are opt-in. */
 export const defaultSettings: Settings = {
+  diagnostics: true,
   inlayHints: false,
 }
 
@@ -18,6 +20,7 @@ export async function pullSettings(connection: Connection): Promise<Settings> {
     })
 
     return {
+      diagnostics: raw?.diagnostics ?? defaultSettings.diagnostics,
       inlayHints: raw?.inlayHints ?? defaultSettings.inlayHints,
     }
   } catch {

@@ -11,11 +11,17 @@ import type {
   ServerCapabilities,
 } from 'vscode-languageserver'
 import { DidChangeWatchedFilesNotification, TextDocumentSyncKind } from 'vscode-languageserver'
-import type { TextDocuments } from 'vscode-languageserver/node'
+import type { TextDocumentChangeEvent, TextDocuments } from 'vscode-languageserver/node'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
 import { ConfigCache } from './cache'
-import { handleCompletion, handleDocumentColor, handleHover, handleInlayHint } from './features'
+import {
+  computeDiagnostics,
+  handleCompletion,
+  handleDocumentColor,
+  handleHover,
+  handleInlayHint,
+} from './features'
 import type { Settings } from './settings'
 import { defaultSettings, pullSettings } from './settings'
 import { normalizeFsPath, uriToPath } from './utils'
@@ -25,6 +31,7 @@ export class SnowLspServer {
   private configCache: ConfigCache
   private workspaceRoots: Array<string> = []
   private settings: Settings = defaultSettings
+  private debounceTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
   constructor(
     private connection: Connection,
@@ -53,6 +60,11 @@ export class SnowLspServer {
     this.connection.languages.inlayHint.on(this.handleInlayHint.bind(this))
     this.connection.onRequest('snowcss/reloadConfig', this.handleReloadConfig.bind(this))
     this.connection.onShutdown(this.handleShutdown.bind(this))
+
+    // Document lifecycle handlers for diagnostics.
+    this.documents.onDidOpen(this.handleDidOpen.bind(this))
+    this.documents.onDidChangeContent(this.handleDidChangeContent.bind(this))
+    this.documents.onDidClose(this.handleDidClose.bind(this))
   }
 
   /** Handles the initialize request. */
@@ -126,20 +138,45 @@ export class SnowLspServer {
         this.configCache.invalidate(normalizeFsPath(configPath))
       }
     }
+
+    // Re-validate all open documents with potentially new config.
+    this.revalidateAllDocuments()
   }
 
   /** Handles server shutdown. */
   private handleShutdown(): void {
+    for (const timer of this.debounceTimers.values()) {
+      clearTimeout(timer)
+    }
+
+    this.debounceTimers.clear()
     this.configCache.invalidateAll()
   }
 
   /** Handles the reload config request. */
   private handleReloadConfig(): { success: boolean } {
     this.configCache.invalidateAll()
+    this.revalidateAllDocuments()
 
     return {
       success: true,
     }
+  }
+
+  /** Handles document open — run diagnostics immediately. */
+  private handleDidOpen(event: TextDocumentChangeEvent<TextDocument>): void {
+    this.validateDocument(event.document)
+  }
+
+  /** Handles document content change — debounced diagnostics. */
+  private handleDidChangeContent(event: TextDocumentChangeEvent<TextDocument>): void {
+    this.scheduleDiagnostics(event.document)
+  }
+
+  /** Handles document close — clear diagnostics and cancel pending timer. */
+  private handleDidClose(event: TextDocumentChangeEvent<TextDocument>): void {
+    this.clearDiagnosticsTimer(event.document.uri)
+    this.connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] })
   }
 
   /** Handles completion requests. */
@@ -198,5 +235,53 @@ export class SnowLspServer {
   private async handleDidChangeConfiguration(): Promise<void> {
     this.settings = await pullSettings(this.connection)
     this.connection.languages.inlayHint.refresh()
+    this.revalidateAllDocuments()
+  }
+
+  /** Schedules a debounced diagnostic run for a document. */
+  private scheduleDiagnostics(document: TextDocument): void {
+    this.clearDiagnosticsTimer(document.uri)
+
+    const timer = setTimeout(() => {
+      this.debounceTimers.delete(document.uri)
+      this.validateDocument(document)
+    }, 300)
+
+    this.debounceTimers.set(document.uri, timer)
+  }
+
+  /** Clears a pending diagnostic timer for a URI. */
+  private clearDiagnosticsTimer(uri: string): void {
+    const timer = this.debounceTimers.get(uri)
+
+    if (timer) {
+      clearTimeout(timer)
+      this.debounceTimers.delete(uri)
+    }
+  }
+
+  /** Runs diagnostics on a document and pushes results to the client. */
+  private async validateDocument(document: TextDocument): Promise<void> {
+    if (!this.settings.diagnostics) {
+      this.connection.sendDiagnostics({ uri: document.uri, diagnostics: [] })
+      return
+    }
+
+    const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
+
+    if (!config) {
+      this.connection.sendDiagnostics({ uri: document.uri, diagnostics: [] })
+      return
+    }
+
+    const diagnostics = computeDiagnostics(document, config)
+    this.connection.sendDiagnostics({ uri: document.uri, diagnostics })
+  }
+
+  /** Re-validates all currently open documents. */
+  private revalidateAllDocuments(): void {
+    for (const document of this.documents.all()) {
+      this.validateDocument(document)
+    }
   }
 }
