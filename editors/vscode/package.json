@@ -61,6 +61,11 @@
           "type": "boolean",
           "default": false,
           "description": "Disable the built-in CSS hover to show only Snow CSS token info."
+        },
+        "snowcss.inlayHints": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show resolved token values as inlay hints. Inlay hints should be enabled in the editor settings."
         }
       }
     },

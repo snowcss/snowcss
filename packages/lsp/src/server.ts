@@ -7,6 +7,7 @@ import type {
   HoverParams,
   InitializeParams,
   InitializeResult,
+  InlayHintParams,
   ServerCapabilities,
 } from 'vscode-languageserver'
 import { DidChangeWatchedFilesNotification, TextDocumentSyncKind } from 'vscode-languageserver'
@@ -14,13 +15,16 @@ import type { TextDocuments } from 'vscode-languageserver/node'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 
 import { ConfigCache } from './cache'
-import { handleCompletion, handleDocumentColor, handleHover } from './features'
+import { handleCompletion, handleDocumentColor, handleHover, handleInlayHint } from './features'
+import type { Settings } from './settings'
+import { defaultSettings, pullSettings } from './settings'
 import { normalizeFsPath, uriToPath } from './utils'
 
 /** Snow CSS LSP server. */
 export class SnowLspServer {
   private configCache: ConfigCache
   private workspaceRoots: Array<string> = []
+  private settings: Settings = defaultSettings
 
   constructor(
     private connection: Connection,
@@ -41,10 +45,12 @@ export class SnowLspServer {
     this.connection.onInitialize(this.handleInitialize.bind(this))
     this.connection.onInitialized(this.handleInitialized.bind(this))
     this.connection.onDidChangeWatchedFiles(this.handleDidChangeWatchedFiles.bind(this))
+    this.connection.onDidChangeConfiguration(this.handleDidChangeConfiguration.bind(this))
     this.connection.onCompletion(this.handleCompletion.bind(this))
     this.connection.onHover(this.handleHover.bind(this))
     this.connection.onDocumentColor(this.handleDocumentColor.bind(this))
     this.connection.onColorPresentation(this.handleColorPresentation.bind(this))
+    this.connection.languages.inlayHint.on(this.handleInlayHint.bind(this))
     this.connection.onRequest('snowcss/reloadConfig', this.handleReloadConfig.bind(this))
     this.connection.onShutdown(this.handleShutdown.bind(this))
   }
@@ -75,6 +81,7 @@ export class SnowLspServer {
       },
       hoverProvider: true,
       colorProvider: true,
+      inlayHintProvider: true,
     }
 
     // Add workspace support if client supports it.
@@ -97,7 +104,8 @@ export class SnowLspServer {
 
   /** Handles the initialized notification. */
   private async handleInitialized(): Promise<void> {
-    // Register file watchers for Snow config files.
+    this.settings = await pullSettings(this.connection)
+
     await this.connection.client.register(DidChangeWatchedFilesNotification.type, {
       watchers: [
         {
@@ -167,9 +175,28 @@ export class SnowLspServer {
     return handleDocumentColor(document, config)
   }
 
+  /** Handles inlay hint requests. */
+  private async handleInlayHint(params: InlayHintParams) {
+    if (!this.settings.inlayHints) return []
+
+    const document = this.documents.get(params.textDocument.uri)
+    if (!document) return []
+
+    const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
+    if (!config) return []
+
+    return handleInlayHint(params, document, config)
+  }
+
   /** Handles color presentation requests. */
   private handleColorPresentation(_params: ColorPresentationParams) {
     // Colors are defined in the config, not editable in CSS.
     return []
+  }
+
+  /** Handles configuration changes from the client. */
+  private async handleDidChangeConfiguration(): Promise<void> {
+    this.settings = await pullSettings(this.connection)
+    this.connection.languages.inlayHint.refresh()
   }
 }

@@ -40,6 +40,9 @@ export async function startClient(context: ExtensionContext, serverPath: string)
       scheme: 'file',
       language,
     })),
+    synchronize: {
+      configurationSection: 'snowcss',
+    },
   }
 
   client = new LanguageClient('snowcss', 'Snow CSS', serverOptions, clientOptions)

@@ -1,5 +1,5 @@
 import type { Token } from '@snowcss/internal'
-import { ColorValue } from '@snowcss/internal'
+import { ColorValue, RemValue } from '@snowcss/internal'
 import { CompletionItemKind } from 'vscode-languageserver'
 
 /** Checks if a token represents a color value. */
@@ -15,4 +15,13 @@ export function getTokenKind(token: Token): CompletionItemKind {
 /** Extracts all ColorValues from a token. */
 export function getColorValues(token: Token): Array<ColorValue> {
   return token.values.filter((value): value is ColorValue => value instanceof ColorValue)
+}
+
+/** Returns the RemValue if the token contains exactly one rem value, null otherwise. */
+export function getRemValue(token: Token): RemValue | null {
+  if (token.values.length === 1 && token.values[0] instanceof RemValue) {
+    return token.values[0]
+  }
+
+  return null
 }
