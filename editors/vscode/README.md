@@ -23,7 +23,7 @@ pnpm add -D @snowcss/lsp
 pnpm add -g @snowcss/lsp
 ```
 
-> **Monorepo note**
+> **Monorepo note**\
 > The extension doesn't look for `snowcss-lsp` in nested packages. In a monorepo, add `@snowcss/lsp` in your root `package.json` or globally. Alternatively, you can point to a specific binary in the workspace via the `snowcss.lsp.path` setting.
 
 ## Configuration
@@ -35,16 +35,20 @@ pnpm add -g @snowcss/lsp
 | `snowcss.inlayHints`              | `boolean \| null` | `null`  | Enable/disable inlay hints. Auto-detected when `null`.           |
 | `snowcss.hover.disableBuiltinCss` | `boolean`         | `false` | Disable VS Code's built-in CSS hover to show only Snow CSS info. |
 
+> **Note**\
+> It is highly recommended to disable VS Code's built-in CSS hover hints, because they interfere with Snow CSS's hover hints and make them much less useful.
+
 ## Commands
 
 All commands are available via the Command Palette under the **Snow CSS** category.
 
-| Command                     | Description                                |
-| --------------------------- | ------------------------------------------ |
-| **Restart Language Server** | Restart the LSP server.                    |
-| **Reload Config**           | Reload `snow.config.*` without restarting. |
-| **Open Config**             | Find and open the nearest `snow.config.*`. |
-| **Show Output**             | Display the LSP output channel.            |
+| Command                      | Description                                                                 |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| **Restart Language Server**  | Restart the LSP server.                                                     |
+| **Reload Config**            | Reload `snow.config.*` without restarting.                                  |
+| **Open Config**              | Find and open the nearest `snow.config.*`.                                  |
+| **Show Output**              | Display the LSP output channel.                                             |
+| **Reset LSP Install Prompt** | Reset the LSP install prompt to retrigger LSP discovery on next activation. |
 
 ## License
 

@@ -19,15 +19,15 @@ export function getOutputChannel(): LogOutputChannel | null {
 
 /** Logs an info-level message. */
 export function logInfo(message: string): void {
-  channel?.appendLine(`[info] ${message}`)
+  channel?.info(message)
 }
 
 /** Logs a warning-level message. */
 export function logWarn(message: string): void {
-  channel?.appendLine(`[warn] ${message}`)
+  channel?.warn(message)
 }
 
 /** Logs an error-level message. */
 export function logError(message: string): void {
-  channel?.appendLine(`[error] ${message}`)
+  channel?.error(message)
 }

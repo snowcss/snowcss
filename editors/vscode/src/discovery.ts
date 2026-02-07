@@ -62,8 +62,6 @@ export async function findLspExecutable(): Promise<LspDiscovery | null> {
     logInfo(`Checking configured LSP path: ${resolvedPath}`)
 
     if (existsSync(resolvedPath)) {
-      logInfo(`Found LSP at configured path: ${resolvedPath}`)
-
       return {
         path: resolvedPath,
         source: 'path',
@@ -83,8 +81,6 @@ export async function findLspExecutable(): Promise<LspDiscovery | null> {
       logInfo(`Checking local node_modules: ${localBin}`)
 
       if (existsSync(localBin)) {
-        logInfo(`Found LSP in local node_modules: ${localBin}`)
-
         return {
           path: localBin,
           source: 'local',
@@ -102,8 +98,6 @@ export async function findLspExecutable(): Promise<LspDiscovery | null> {
     const globalPath = stdout.trim().split('\n').at(0)
 
     if (globalPath && existsSync(globalPath)) {
-      logInfo(`Found LSP on global PATH: ${globalPath}`)
-
       return {
         path: globalPath,
         source: 'global',
