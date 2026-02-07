@@ -83,9 +83,21 @@ export class SnowLspServer {
       }
     }
 
+    this.connection.console.info(
+      `Workspace roots: ${this.workspaceRoots.length ? this.workspaceRoots.join(', ') : '(none)'}`,
+    )
+
     // Resolve defaults from client capabilities.
     this.defaults = resolveDefaults(params.capabilities)
     this.settings = { ...this.defaults }
+
+    this.connection.console.info(
+      `Client capabilities — ` +
+        [
+          `inlayHints: ${!!params.capabilities.textDocument?.inlayHint}`,
+          `workspaceFolders: ${!!params.capabilities.workspace?.workspaceFolders}`,
+        ].join(', '),
+    )
 
     const capabilities: ServerCapabilities = {
       textDocumentSync: TextDocumentSyncKind.Incremental,
@@ -127,6 +139,14 @@ export class SnowLspServer {
   private async handleInitialized(): Promise<void> {
     this.settings = await pullSettings(this.connection, this.defaults)
 
+    this.connection.console.info(
+      `Settings — ` +
+        [
+          `diagnostics: ${this.settings.diagnostics}`,
+          `inlayHints: ${this.settings.inlayHints}`,
+        ].join(', '),
+    )
+
     await this.connection.client.register(DidChangeWatchedFilesNotification.type, {
       watchers: [
         {
@@ -135,11 +155,13 @@ export class SnowLspServer {
       ],
     })
 
-    this.connection.console.log('Snow CSS LSP server initialized')
+    this.connection.console.info('Snow CSS LSP server initialized.')
   }
 
   /** Handles watched file changes (config invalidation). */
   private handleDidChangeWatchedFiles(params: DidChangeWatchedFilesParams): void {
+    this.connection.console.info(`Config file changes detected: ${params.changes.length} file(s).`)
+
     for (const change of params.changes) {
       const configPath = uriToPath(change.uri)
 
@@ -154,6 +176,7 @@ export class SnowLspServer {
 
   /** Handles server shutdown. */
   private handleShutdown(): void {
+    this.connection.console.info('Shutting down Snow CSS LSP server.')
     for (const timer of this.debounceTimers.values()) {
       clearTimeout(timer)
     }
@@ -164,6 +187,7 @@ export class SnowLspServer {
 
   /** Handles the reload config request. */
   private handleReloadConfig(): { success: boolean } {
+    this.connection.console.info('Config reload requested by client.')
     this.configCache.invalidateAll()
     this.revalidateAllDocuments()
 
@@ -190,48 +214,68 @@ export class SnowLspServer {
 
   /** Handles completion requests. */
   private async handleCompletion(params: CompletionParams) {
-    const document = this.documents.get(params.textDocument.uri)
-    if (!document) return []
+    try {
+      const document = this.documents.get(params.textDocument.uri)
+      if (!document) return []
 
-    const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
-    if (!config) return []
+      const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
+      if (!config) return []
 
-    return handleCompletion(params, document, config)
+      return handleCompletion(params, document, config)
+    } catch (error) {
+      this.connection.console.error(`Completion failed: ${error}`)
+      return []
+    }
   }
 
   /** Handles hover requests. */
   private async handleHover(params: HoverParams) {
-    const document = this.documents.get(params.textDocument.uri)
-    if (!document) return null
+    try {
+      const document = this.documents.get(params.textDocument.uri)
+      if (!document) return null
 
-    const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
-    if (!config) return null
+      const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
+      if (!config) return null
 
-    return handleHover(params, document, config)
+      return handleHover(params, document, config)
+    } catch (error) {
+      this.connection.console.error(`Hover failed: ${error}`)
+      return null
+    }
   }
 
   /** Handles document color requests. */
   private async handleDocumentColor(params: DocumentColorParams) {
-    const document = this.documents.get(params.textDocument.uri)
-    if (!document) return []
+    try {
+      const document = this.documents.get(params.textDocument.uri)
+      if (!document) return []
 
-    const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
-    if (!config) return []
+      const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
+      if (!config) return []
 
-    return handleDocumentColor(document, config)
+      return handleDocumentColor(document, config)
+    } catch (error) {
+      this.connection.console.error(`Document color failed: ${error}`)
+      return []
+    }
   }
 
   /** Handles inlay hint requests. */
   private async handleInlayHint(params: InlayHintParams) {
-    if (!this.settings.inlayHints) return []
+    try {
+      if (!this.settings.inlayHints) return []
 
-    const document = this.documents.get(params.textDocument.uri)
-    if (!document) return []
+      const document = this.documents.get(params.textDocument.uri)
+      if (!document) return []
 
-    const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
-    if (!config) return []
+      const config = await this.configCache.getForDocument(document.uri, this.workspaceRoots)
+      if (!config) return []
 
-    return handleInlayHint(params, document, config)
+      return handleInlayHint(params, document, config)
+    } catch (error) {
+      this.connection.console.error(`Inlay hint failed: ${error}`)
+      return []
+    }
   }
 
   /** Handles color presentation requests. */
@@ -243,6 +287,15 @@ export class SnowLspServer {
   /** Handles configuration changes from the client. */
   private async handleDidChangeConfiguration(): Promise<void> {
     this.settings = await pullSettings(this.connection, this.defaults)
+
+    this.connection.console.info(
+      `Settings updated — ` +
+        [
+          `diagnostics: ${this.settings.diagnostics}`,
+          `inlayHints: ${this.settings.inlayHints}`,
+        ].join(', '),
+    )
+
     this.connection.languages.inlayHint.refresh()
     this.revalidateAllDocuments()
   }
@@ -283,8 +336,13 @@ export class SnowLspServer {
       return
     }
 
-    const diagnostics = computeDiagnostics(document, config)
-    this.connection.sendDiagnostics({ uri: document.uri, diagnostics })
+    try {
+      const diagnostics = computeDiagnostics(document, config)
+      this.connection.sendDiagnostics({ uri: document.uri, diagnostics })
+    } catch (error) {
+      this.connection.console.error(`Diagnostics failed for ${document.uri}: ${error}`)
+      this.connection.sendDiagnostics({ uri: document.uri, diagnostics: [] })
+    }
   }
 
   /** Re-validates all currently open documents. */

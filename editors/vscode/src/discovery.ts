@@ -8,6 +8,7 @@ import type { ExtensionContext } from 'vscode'
 import { window, workspace } from 'vscode'
 
 import { STATE_DISMISS_LSP_PROMPT } from './constants'
+import { logError, logInfo, logWarn } from './logger'
 
 export type LspSource = 'path' | 'local' | 'global'
 
@@ -58,14 +59,18 @@ export async function findLspExecutable(): Promise<LspDiscovery | null> {
 
   if (configuredPath) {
     const resolvedPath = resolveLspPath(configuredPath)
+    logInfo(`Checking configured LSP path: ${resolvedPath}`)
 
     if (existsSync(resolvedPath)) {
+      logInfo(`Found LSP at configured path: ${resolvedPath}`)
+
       return {
         path: resolvedPath,
         source: 'path',
       }
     }
 
+    logWarn(`Configured LSP path does not exist: ${resolvedPath}`)
     window.showWarningMessage(`Configured snowcss.lsp.path does not exist: ${resolvedPath}`)
   }
 
@@ -75,8 +80,11 @@ export async function findLspExecutable(): Promise<LspDiscovery | null> {
   if (workspaceFolders) {
     for (const folder of workspaceFolders) {
       const localBin = join(folder.uri.fsPath, 'node_modules', '.bin', 'snowcss-lsp')
+      logInfo(`Checking local node_modules: ${localBin}`)
 
       if (existsSync(localBin)) {
+        logInfo(`Found LSP in local node_modules: ${localBin}`)
+
         return {
           path: localBin,
           source: 'local',
@@ -86,21 +94,26 @@ export async function findLspExecutable(): Promise<LspDiscovery | null> {
   }
 
   // Check global installation via which/where.
+  logInfo('Checking global PATH for snowcss-lsp.')
+
   try {
     const command = process.platform === 'win32' ? 'where snowcss-lsp' : 'which snowcss-lsp'
     const { stdout } = await execAsync(command)
     const globalPath = stdout.trim().split('\n').at(0)
 
     if (globalPath && existsSync(globalPath)) {
+      logInfo(`Found LSP on global PATH: ${globalPath}`)
+
       return {
         path: globalPath,
         source: 'global',
       }
     }
   } catch {
-    // Command failed, executable not found globally.
+    logInfo('snowcss-lsp not found on global PATH.')
   }
 
+  logInfo('LSP executable not found via any discovery method.')
   return null
 }
 
@@ -142,6 +155,8 @@ export async function promptInstallLsp(context: ExtensionContext): Promise<boole
   const pm = await detectPackageManager()
   const installCommand = INSTALL_COMMANDS[pm]
 
+  logInfo(`Detected package manager: ${pm}. Running: ${installCommand}`)
+
   try {
     await window.withProgress(
       {
@@ -153,10 +168,12 @@ export async function promptInstallLsp(context: ExtensionContext): Promise<boole
       },
     )
 
+    logInfo('LSP installed successfully.')
     window.showInformationMessage('Snow CSS language server installed successfully.')
     return true
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
+    logError(`LSP install failed: ${message}`)
     window.showErrorMessage(`Failed to install @snowcss/lsp: ${message}`)
     return false
   }

@@ -6,6 +6,7 @@ import { registerCommands } from './commands'
 import { STATE_DISMISS_LSP_PROMPT, STATE_LSP_FOUND_NOTIFIED } from './constants'
 import type { LspSource } from './discovery'
 import { findLspExecutable, promptInstallLsp } from './discovery'
+import { createOutputChannel, logInfo, logWarn } from './logger'
 import { startClient, stopClient } from './lsp'
 
 const LSP_SOURCE_LABELS: Record<LspSource, string> = {
@@ -63,6 +64,10 @@ function handleDocumentChange(event: TextDocumentChangeEvent): void {
 }
 
 export async function activate(context: ExtensionContext): Promise<void> {
+  const outputChannel = createOutputChannel()
+
+  logInfo('Activating Snow CSS extension.')
+
   registerCommands(context)
 
   await applyCssHoverSetting()
@@ -77,6 +82,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(workspace.onDidChangeTextDocument(handleDocumentChange))
 
+  logInfo('Discovering LSP server executable.')
+
   let discovery = await findLspExecutable()
 
   if (!discovery) {
@@ -86,15 +93,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
       const installed = await promptInstallLsp(context)
 
       if (installed) {
+        logInfo('Retrying LSP discovery after install.')
         discovery = await findLspExecutable()
       }
     }
   }
 
   if (!discovery) {
+    logWarn('LSP server not available. LSP features disabled.')
     window.showWarningMessage('Snow CSS language server not available. LSP features are disabled.')
     return
   }
+
+  logInfo(`LSP server found: ${discovery.path} (${discovery.source}).`)
 
   // Show a one-time notification about the discovered LSP.
   if (!context.globalState.get<boolean>(STATE_LSP_FOUND_NOTIFIED)) {
@@ -103,9 +114,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
     await context.globalState.update(STATE_LSP_FOUND_NOTIFIED, true)
   }
 
-  await startClient(context, discovery.path)
+  await startClient(context, discovery.path, outputChannel)
+  logInfo('Language client started.')
 }
 
 export async function deactivate(): Promise<void> {
+  logInfo('Deactivating Snow CSS extension.')
   await stopClient()
 }

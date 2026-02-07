@@ -1,6 +1,8 @@
-import type { ExtensionContext } from 'vscode'
+import type { ExtensionContext, LogOutputChannel } from 'vscode'
 import type { LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node'
+
+import { logInfo } from './logger'
 
 const LANGUAGES = [
   'astro',
@@ -23,7 +25,13 @@ export function getClient(): LanguageClient | null {
 }
 
 /** Starts the language client with the given server path. */
-export async function startClient(context: ExtensionContext, serverPath: string): Promise<void> {
+export async function startClient(
+  context: ExtensionContext,
+  serverPath: string,
+  outputChannel: LogOutputChannel,
+): Promise<void> {
+  logInfo(`Starting language client with server: ${serverPath}`)
+
   const serverOptions: ServerOptions = {
     run: {
       command: serverPath,
@@ -43,6 +51,7 @@ export async function startClient(context: ExtensionContext, serverPath: string)
     synchronize: {
       configurationSection: 'snowcss',
     },
+    outputChannel,
   }
 
   client = new LanguageClient('snowcss', 'Snow CSS', serverOptions, clientOptions)
@@ -54,6 +63,7 @@ export async function startClient(context: ExtensionContext, serverPath: string)
 /** Stops the language client. */
 export async function stopClient(): Promise<void> {
   if (client) {
+    logInfo('Stopping language client.')
     await client.stop()
     client = null
   }

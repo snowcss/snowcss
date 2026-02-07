@@ -26,6 +26,7 @@ export async function pullSettings(connection: Connection, defaults: Settings): 
       inlayHints: raw?.inlayHints ?? defaults.inlayHints,
     }
   } catch {
+    connection.console.warn('Failed to pull settings, using defaults.')
     return { ...defaults }
   }
 }
