@@ -2,6 +2,7 @@ import { findNearestConfig } from '@snowcss/internal/shared'
 import type { ExtensionContext } from 'vscode'
 import { commands, window, workspace } from 'vscode'
 
+import { STATE_DISMISS_LSP_PROMPT } from './constants'
 import { getClient } from './lsp'
 
 /** Registers all extension commands. */
@@ -49,6 +50,11 @@ export function registerCommands(context: ExtensionContext): void {
       }
 
       await client.sendRequest('snowcss/reloadConfig')
+    }),
+
+    commands.registerCommand('snowcss.resetLspPrompt', async () => {
+      await context.globalState.update(STATE_DISMISS_LSP_PROMPT, undefined)
+      window.showInformationMessage('Snow CSS LSP install prompt has been re-enabled.')
     }),
   )
 }

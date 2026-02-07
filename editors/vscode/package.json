@@ -47,6 +47,11 @@
         "command": "snowcss.reloadConfig",
         "title": "Reload Config",
         "category": "Snow CSS"
+      },
+      {
+        "command": "snowcss.resetLspPrompt",
+        "title": "Reset LSP Install Prompt",
+        "category": "Snow CSS"
       }
     ],
     "configuration": {

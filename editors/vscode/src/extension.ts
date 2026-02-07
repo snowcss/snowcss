@@ -3,8 +3,16 @@ import type { ExtensionContext, TextDocumentChangeEvent } from 'vscode'
 import { ConfigurationTarget, commands, window, workspace } from 'vscode'
 
 import { registerCommands } from './commands'
+import { STATE_DISMISS_LSP_PROMPT, STATE_LSP_FOUND_NOTIFIED } from './constants'
+import type { LspSource } from './discovery'
 import { findLspExecutable, promptInstallLsp } from './discovery'
 import { startClient, stopClient } from './lsp'
+
+const LSP_SOURCE_LABELS: Record<LspSource, string> = {
+  path: 'via configured path',
+  local: 'locally in node_modules',
+  global: 'via global installation',
+}
 
 /** Applies the CSS hover setting based on Snow CSS configuration. */
 async function applyCssHoverSetting(): Promise<void> {
@@ -69,21 +77,33 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(workspace.onDidChangeTextDocument(handleDocumentChange))
 
-  let serverPath = await findLspExecutable()
-  if (!serverPath) {
-    const installed = await promptInstallLsp()
+  let discovery = await findLspExecutable()
 
-    if (installed) {
-      serverPath = await findLspExecutable()
+  if (!discovery) {
+    const dismissed = context.globalState.get<boolean>(STATE_DISMISS_LSP_PROMPT)
+
+    if (!dismissed) {
+      const installed = await promptInstallLsp(context)
+
+      if (installed) {
+        discovery = await findLspExecutable()
+      }
     }
   }
 
-  if (!serverPath) {
+  if (!discovery) {
     window.showWarningMessage('Snow CSS language server not available. LSP features are disabled.')
     return
   }
 
-  await startClient(context, serverPath)
+  // Show a one-time notification about the discovered LSP.
+  if (!context.globalState.get<boolean>(STATE_LSP_FOUND_NOTIFIED)) {
+    const label = LSP_SOURCE_LABELS[discovery.source]
+    window.showInformationMessage(`Snow CSS language server found (${label}).`)
+    await context.globalState.update(STATE_LSP_FOUND_NOTIFIED, true)
+  }
+
+  await startClient(context, discovery.path)
 }
 
 export async function deactivate(): Promise<void> {

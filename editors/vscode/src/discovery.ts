@@ -4,7 +4,17 @@ import { homedir } from 'node:os'
 import { isAbsolute, join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 
+import type { ExtensionContext } from 'vscode'
 import { window, workspace } from 'vscode'
+
+import { STATE_DISMISS_LSP_PROMPT } from './constants'
+
+export type LspSource = 'path' | 'local' | 'global'
+
+export interface LspDiscovery {
+  path: string
+  source: LspSource
+}
 
 type PackageManager = 'pnpm' | 'yarn' | 'npm' | 'bun'
 
@@ -42,7 +52,7 @@ function resolveLspPath(configuredPath: string): string {
 }
 
 /** Finds the snowcss-lsp executable using the discovery strategy. */
-export async function findLspExecutable(): Promise<string | null> {
+export async function findLspExecutable(): Promise<LspDiscovery | null> {
   // Check user-configured path.
   const configuredPath = workspace.getConfiguration('snowcss').get<string>('lsp.path')
 
@@ -50,7 +60,10 @@ export async function findLspExecutable(): Promise<string | null> {
     const resolvedPath = resolveLspPath(configuredPath)
 
     if (existsSync(resolvedPath)) {
-      return resolvedPath
+      return {
+        path: resolvedPath,
+        source: 'path',
+      }
     }
 
     window.showWarningMessage(`Configured snowcss.lsp.path does not exist: ${resolvedPath}`)
@@ -64,7 +77,10 @@ export async function findLspExecutable(): Promise<string | null> {
       const localBin = join(folder.uri.fsPath, 'node_modules', '.bin', 'snowcss-lsp')
 
       if (existsSync(localBin)) {
-        return localBin
+        return {
+          path: localBin,
+          source: 'local',
+        }
       }
     }
   }
@@ -76,7 +92,10 @@ export async function findLspExecutable(): Promise<string | null> {
     const globalPath = stdout.trim().split('\n').at(0)
 
     if (globalPath && existsSync(globalPath)) {
-      return globalPath
+      return {
+        path: globalPath,
+        source: 'global',
+      }
     }
   } catch {
     // Command failed, executable not found globally.
@@ -103,12 +122,18 @@ async function detectPackageManager(): Promise<PackageManager> {
 }
 
 /** Prompts user to install the LSP server globally. */
-export async function promptInstallLsp(): Promise<boolean> {
+export async function promptInstallLsp(context: ExtensionContext): Promise<boolean> {
   const action = await window.showInformationMessage(
     'Snow CSS language server not found. Install it globally?',
     'Install',
+    "Don't ask again",
     'Dismiss',
   )
+
+  if (action === "Don't ask again") {
+    await context.globalState.update(STATE_DISMISS_LSP_PROMPT, true)
+    return false
+  }
 
   if (action !== 'Install') {
     return false
