@@ -1,4 +1,4 @@
-import type { Connection } from 'vscode-languageserver'
+import type { ClientCapabilities, Connection } from 'vscode-languageserver'
 
 /** LSP server settings synced from the client. */
 export interface Settings {
@@ -6,24 +6,26 @@ export interface Settings {
   inlayHints: boolean
 }
 
-/** Default settings. Diagnostics are opt-out, inlay hints are opt-in. */
-export const defaultSettings: Settings = {
-  diagnostics: true,
-  inlayHints: false,
+/** Resolves default settings from client capabilities. */
+export function resolveDefaults(capabilities: ClientCapabilities): Settings {
+  return {
+    diagnostics: !!capabilities.textDocument?.publishDiagnostics,
+    inlayHints: !!capabilities.textDocument?.inlayHint,
+  }
 }
 
 /** Pulls current settings from the client via workspace/configuration. */
-export async function pullSettings(connection: Connection): Promise<Settings> {
+export async function pullSettings(connection: Connection, defaults: Settings): Promise<Settings> {
   try {
     const raw = await connection.workspace.getConfiguration({
       section: 'snowcss',
     })
 
     return {
-      diagnostics: raw?.diagnostics ?? defaultSettings.diagnostics,
-      inlayHints: raw?.inlayHints ?? defaultSettings.inlayHints,
+      diagnostics: raw?.diagnostics ?? defaults.diagnostics,
+      inlayHints: raw?.inlayHints ?? defaults.inlayHints,
     }
   } catch {
-    return { ...defaultSettings }
+    return { ...defaults }
   }
 }

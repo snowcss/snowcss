@@ -23,14 +23,15 @@ import {
   handleInlayHint,
 } from './features'
 import type { Settings } from './settings'
-import { defaultSettings, pullSettings } from './settings'
+import { pullSettings, resolveDefaults } from './settings'
 import { normalizeFsPath, uriToPath } from './utils'
 
 /** Snow CSS LSP server. */
 export class SnowLspServer {
   private configCache: ConfigCache
   private workspaceRoots: Array<string> = []
-  private settings: Settings = defaultSettings
+  private defaults: Settings = { diagnostics: true, inlayHints: false }
+  private settings: Settings = { diagnostics: true, inlayHints: false }
   private debounceTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
   constructor(
@@ -82,6 +83,10 @@ export class SnowLspServer {
       }
     }
 
+    // Resolve defaults from client capabilities.
+    this.defaults = resolveDefaults(params.capabilities)
+    this.settings = { ...this.defaults }
+
     const capabilities: ServerCapabilities = {
       textDocumentSync: TextDocumentSyncKind.Incremental,
       completionProvider: {
@@ -93,7 +98,11 @@ export class SnowLspServer {
       },
       hoverProvider: true,
       colorProvider: true,
-      inlayHintProvider: true,
+    }
+
+    // Only advertise inlay hints if the client supports them.
+    if (params.capabilities.textDocument?.inlayHint) {
+      capabilities.inlayHintProvider = true
     }
 
     // Add workspace support if client supports it.
@@ -116,7 +125,7 @@ export class SnowLspServer {
 
   /** Handles the initialized notification. */
   private async handleInitialized(): Promise<void> {
-    this.settings = await pullSettings(this.connection)
+    this.settings = await pullSettings(this.connection, this.defaults)
 
     await this.connection.client.register(DidChangeWatchedFilesNotification.type, {
       watchers: [
@@ -233,7 +242,7 @@ export class SnowLspServer {
 
   /** Handles configuration changes from the client. */
   private async handleDidChangeConfiguration(): Promise<void> {
-    this.settings = await pullSettings(this.connection)
+    this.settings = await pullSettings(this.connection, this.defaults)
     this.connection.languages.inlayHint.refresh()
     this.revalidateAllDocuments()
   }
