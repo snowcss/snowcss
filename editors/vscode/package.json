@@ -1,7 +1,7 @@
 {
   "name": "snowcss-intellisense",
   "displayName": "Snow CSS",
-  "description": "Visual Studio Code extension for Snow CSS",
+  "description": "Snow CSS IntelliSense",
   "version": "0.1.0",
   "private": true,
   "preview": true,

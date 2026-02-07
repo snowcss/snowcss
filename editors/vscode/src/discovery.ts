@@ -1,6 +1,7 @@
 import { exec } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { homedir } from 'node:os'
+import { isAbsolute, join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 
 import { window, workspace } from 'vscode'
@@ -16,16 +17,46 @@ const INSTALL_COMMANDS: Record<PackageManager, string> = {
 
 const execAsync = promisify(exec)
 
-/** Finds the snowcss-lsp executable using the discovery strategy. */
-export async function findLspExecutable(): Promise<string | null> {
-  // 1. Check user-configured path.
-  const configuredPath = workspace.getConfiguration('snowcss').get<string>('lsp.path')
+/**
+ * Resolves a user-configured LSP path, expanding tilde and resolving relative paths against the
+ * workspace root.
+ */
+function resolveLspPath(configuredPath: string): string {
+  let resolved = configuredPath
 
-  if (configuredPath && existsSync(configuredPath)) {
-    return configuredPath
+  // Expand tilde to home directory.
+  if (resolved.startsWith('~')) {
+    resolved = join(homedir(), resolved.slice(1))
   }
 
-  // 2. Check workspace-local node_modules.
+  // Resolve relative paths against the first workspace folder.
+  if (!isAbsolute(resolved)) {
+    const root = workspace.workspaceFolders?.at(0)?.uri.fsPath
+
+    if (root) {
+      resolved = resolve(root, resolved)
+    }
+  }
+
+  return resolved
+}
+
+/** Finds the snowcss-lsp executable using the discovery strategy. */
+export async function findLspExecutable(): Promise<string | null> {
+  // Check user-configured path.
+  const configuredPath = workspace.getConfiguration('snowcss').get<string>('lsp.path')
+
+  if (configuredPath) {
+    const resolvedPath = resolveLspPath(configuredPath)
+
+    if (existsSync(resolvedPath)) {
+      return resolvedPath
+    }
+
+    window.showWarningMessage(`Configured snowcss.lsp.path does not exist: ${resolvedPath}`)
+  }
+
+  // Check workspace-local node_modules.
   const workspaceFolders = workspace.workspaceFolders
 
   if (workspaceFolders) {
@@ -38,7 +69,7 @@ export async function findLspExecutable(): Promise<string | null> {
     }
   }
 
-  // 3. Check global installation via which/where.
+  // Check global installation via which/where.
   try {
     const command = process.platform === 'win32' ? 'where snowcss-lsp' : 'which snowcss-lsp'
     const { stdout } = await execAsync(command)

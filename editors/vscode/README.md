@@ -1,6 +1,6 @@
 # Snow CSS IntelliSense
 
-Visual Studio Code extension providing IntelliSense for [Snow CSS](https://github.com/snowcss/snowcss). Powered by the `@snowcss/lsp` language server.
+IntelliSense for [Snow CSS](https://github.com/snowcss/snowcss). Powered by the `@snowcss/lsp` language server.
 
 ## Features
 
@@ -22,6 +22,9 @@ pnpm add -D @snowcss/lsp
 # Or globally
 pnpm add -g @snowcss/lsp
 ```
+
+> **Monorepo note**
+> The extension doesn't look for `snowcss-lsp` in nested packages. In a monorepo, add `@snowcss/lsp` in your root `package.json` or globally. Alternatively, you can point to a specific binary in the workspace via the `snowcss.lsp.path` setting.
 
 ## Configuration
 
