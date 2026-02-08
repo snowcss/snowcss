@@ -2,8 +2,8 @@ import type { Path } from '#path'
 import type { Token } from '#token'
 import type { Location, ToCacheKey } from '#types'
 
+import { SnowFunctionName } from './constants'
 import type { SnowFunction } from './index'
-import { SnowFunctionName } from './index'
 import { SnowFunctionParser } from './parser'
 
 /** Represents a parsed --token() CSS function call. */

@@ -7,7 +7,7 @@ import type { Modifiable, ModifyContext, ValueModifier } from './modifier'
 import { AlphaModifier } from './modifier'
 
 /** RGBA color with values in the [0, 1] range. */
-interface RgbaColor {
+export interface RgbaColor {
   r: number
   g: number
   b: number

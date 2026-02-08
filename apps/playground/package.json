@@ -1,5 +1,5 @@
 {
-  "name": "playground",
+  "name": "@snowcss/playground",
   "private": true,
   "type": "module",
   "scripts": {

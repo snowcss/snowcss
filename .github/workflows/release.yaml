@@ -18,11 +18,15 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write
       pull-requests: write
       id-token: write
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
 
     steps:
       - name: Checkout
@@ -53,3 +57,97 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  vscode:
+    name: Release Visual Studio Code Extension Artifact
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Get version
+        id: version
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs')
+            const pkg = JSON.parse(fs.readFileSync('editors/vscode/package.json', 'utf8'))
+            return pkg.version
+
+      - name: Check if release exists
+        id: check
+        run: |
+          tag="snowcss-intellisense@${{ steps.version.outputs.result }}"
+
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get changelog
+        if: steps.check.outputs.exists == 'false'
+        id: changelog
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const fs = require('fs')
+            const os = require('os')
+            const path = require('path')
+
+            let notes = 'No changelog available for this release.'
+
+            try {
+              const changelog = fs.readFileSync('editors/vscode/CHANGELOG.md', 'utf8')
+              const sections = changelog.split(/^## /m)
+              const extracted = sections.at(1)?.split('\n').slice(1).join('\n').trim()
+
+              if (extracted) {
+                notes = extracted
+              }
+            } catch {
+              // CHANGELOG.md does not exist, use default message.
+            }
+
+            const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'snowcss-'))
+            const tmpFile = path.join(tmpDir, 'changelog.md')
+
+            fs.writeFileSync(tmpFile, notes)
+
+            return tmpFile
+
+      - name: Package and Release
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          pnpm vscode:build
+          pnpm vscode:package
+
+          gh release create "snowcss-intellisense@${{ steps.version.outputs.result }}" \
+            editors/vscode/*.vsix \
+            --title "snowcss-intellisense@${{ steps.version.outputs.result }}" \
+            --notes-file "${{ steps.changelog.outputs.result }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

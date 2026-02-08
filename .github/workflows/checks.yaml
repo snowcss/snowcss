@@ -44,4 +44,4 @@ jobs:
         run: pnpm test
 
       - name: Lint
-        run: pnpm biome check .
+        run: pnpm check

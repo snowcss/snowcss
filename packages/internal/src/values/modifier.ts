@@ -34,6 +34,9 @@ export class NegateModifier implements ToCacheKey {
 /** Modifier for --value() function. */
 export type ValueModifier = UnitModifier | AlphaModifier | NegateModifier
 
+/** Modifier kind discriminator. */
+export type ModifierKind = 'unit' | 'alpha' | 'negate'
+
 /** Context for applying modifiers, contains configuration needed for conversions. */
 export interface ModifyContext {
   /** Root font size in pixels for rem/px conversion. */

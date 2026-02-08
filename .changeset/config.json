@@ -7,9 +7,9 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [],
+  "ignore": ["@snowcss/playground"],
   "privatePackages": {
-    "version": false,
-    "tag": false
+    "version": true,
+    "tag": true
   }
 }

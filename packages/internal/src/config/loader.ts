@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { createJiti } from 'jiti'
 
 import { Config } from './config'
+import { CONFIG_FILES } from './discovery'
 import type { UserConfig } from './user'
 
 export interface LoadConfigOptions {
@@ -14,12 +15,6 @@ export interface LoadConfigOptions {
   /** The absolute path to the Snow config file. `root` and `path` are ignored if this is set. */
   exact?: string
 }
-
-/** Supported config file extensions. Basically what Jiti supports. */
-const CONFIG_EXTENSIONS = ['.ts', '.cts', '.mts', '.js', '.cjs', '.mjs']
-
-/** Default config files. */
-const CONFIG_FILES = CONFIG_EXTENSIONS.map((ext) => `snow.config${ext}`)
 
 /** Jiti instance. */
 const jiti = createJiti(import.meta.url, {
@@ -59,13 +54,5 @@ export async function loadConfig(options: LoadConfigOptions): Promise<Config> {
     return Config.create(config, configPath)
   } catch (error) {
     throw new Error(`Failed to load Snow config: ${error}`)
-  }
-}
-
-/** Returns the static config meta: supported extensions and default file names with extension. */
-export function staticConfigMeta(): { extensions: Array<string>; files: Array<string> } {
-  return {
-    extensions: CONFIG_EXTENSIONS,
-    files: CONFIG_FILES,
   }
 }

@@ -1,0 +1,72 @@
+import type { SnowFunction, SnowFunctionName, ValueModifier } from '@snowcss/internal'
+import { ValueFunction, extract } from '@snowcss/internal'
+
+import type { CssRegion } from '#parsing'
+import { insideCssRegion } from '#parsing'
+
+interface Range {
+  start: number
+  end: number
+}
+
+/** Information about a Snow CSS function call. */
+export interface FunctionCall {
+  name: SnowFunctionName
+  path: string
+  modifier: ValueModifier | null
+  range: Range
+}
+
+/** Maps a SnowFunction to FunctionCall, adjusting offset by region start. */
+function toFunctionCall(fn: SnowFunction, regionStart: number): FunctionCall {
+  return {
+    name: fn.name,
+    path: fn.path.toDotPath(),
+    modifier: fn instanceof ValueFunction ? fn.modifier : null,
+    range: {
+      start: fn.location.start + regionStart,
+      end: fn.location.end + regionStart,
+    },
+  }
+}
+
+/** Finds all Snow CSS function calls in the given text, filtered to CSS regions. */
+export function findAllFunctions(text: string, regions: Array<CssRegion>): Array<FunctionCall> {
+  const results: Array<FunctionCall> = []
+
+  for (const region of regions) {
+    const cssContent = text.slice(region.start, region.end)
+
+    try {
+      const [functions] = extract(cssContent)
+
+      for (const fn of functions) {
+        results.push(toFunctionCall(fn, region.start))
+      }
+    } catch {
+      // Parse errors are expected for incomplete CSS during editing.
+    }
+  }
+
+  return results
+}
+
+/** Finds the Snow CSS function call at the given offset, if any. */
+export function findFunctionAtOffset(
+  text: string,
+  offset: number,
+  regions: Array<CssRegion>,
+): FunctionCall | null {
+  const region = regions.find((it) => insideCssRegion(it, offset))
+  if (!region) return null
+
+  const functions = findAllFunctions(text, [region])
+
+  for (const fn of functions) {
+    if (offset >= fn.range.start && offset <= fn.range.end) {
+      return fn
+    }
+  }
+
+  return null
+}

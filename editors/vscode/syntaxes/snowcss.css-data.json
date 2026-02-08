@@ -1,0 +1,15 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@snowcss",
+      "description": "Snow CSS directive for injecting generated design tokens.",
+      "references": [
+        {
+          "name": "Documentation",
+          "url": "https://github.com/snowcss/snowcss"
+        }
+      ]
+    }
+  ]
+}

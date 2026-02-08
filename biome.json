@@ -55,6 +55,9 @@
           "options": {
             "ignore": ["snowcss"]
           }
+        },
+        "noAssignInExpressions": {
+          "level": "off"
         }
       }
     }

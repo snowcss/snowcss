@@ -3,6 +3,10 @@ import { defineConfig } from 'snowcss'
 export default defineConfig({
   inject: 'asset',
   tokens: {
+    outline: {
+      ring: '2px solid #60a5fa',
+      double: '2px solid #60a5fa, 1px dashed #4ade80',
+    },
     font: {
       sans: `Inter, system-ui, sans-serif`,
       mono: `'JetBrains Mono', monospace`,
