@@ -7,6 +7,7 @@ import {
   SNOWCSS_CLIENT_ID,
   VIRTUAL_CSS_ID,
   VIRTUAL_CSS_ID_RESOLVED,
+  VIRTUAL_CSS_PLACEHOLDER,
   VIRTUAL_MODULE_ID,
   VIRTUAL_MODULE_ID_RESOLVED,
 } from './constants'
@@ -46,6 +47,7 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
   let snowContext: Context
 
   let isBuild: boolean = false
+  let virtualCssImported: boolean = false
   let assetFileId: string | null = null
   let assetSource: string | null = null
   let atRuleFileId: string | null = null
@@ -73,6 +75,11 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
   }
 
   function getIndexTag(): HtmlTagDescriptor | null {
+    // When virtual CSS is imported directly, the framework handles CSS delivery.
+    if (virtualCssImported) {
+      return null
+    }
+
     const inject = snowContext.config.config.inject
 
     if (inject === 'inline') {
@@ -164,24 +171,43 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         }
       })
 
-      // Add middleware to handle virtual CSS modules.
+      // Serve virtual CSS at /virtual:snowcss.css.
       server.middlewares.use(serveVirtualCss(snowContext))
     },
 
     resolveId(id) {
       // Resolve 'virtual:snowcss' imports.
-      if (id === VIRTUAL_MODULE_ID) return VIRTUAL_MODULE_ID_RESOLVED
-      // Resolve 'virtual:snowcss/tokens.css' imports.
-      if (id === VIRTUAL_CSS_ID) return VIRTUAL_CSS_ID_RESOLVED
+      if (id === VIRTUAL_MODULE_ID) {
+        return VIRTUAL_MODULE_ID_RESOLVED
+      }
+
+      // Resolve 'virtual:snowcss.css' imports, plus the resolved id itself when Vite's dev
+      // server forwards a browser request for the generated URL back through resolveId.
+      // Preserve the '?inline' query so Vite's CSS plugin emits the CSS string as the
+      // module's default export (required by SvelteKit's SSR inline-styles path).
+      if (id === VIRTUAL_CSS_ID + '?inline' || id === VIRTUAL_CSS_ID_RESOLVED + '?inline') {
+        virtualCssImported = true
+        return VIRTUAL_CSS_ID_RESOLVED + '?inline'
+      }
+
+      if (id === VIRTUAL_CSS_ID || id === VIRTUAL_CSS_ID_RESOLVED) {
+        virtualCssImported = true
+        return VIRTUAL_CSS_ID_RESOLVED
+      }
     },
 
     load(id) {
-      if (id === VIRTUAL_CSS_ID_RESOLVED) {
-        const css = snowContext.emitAllCss({
-          minify: false,
-        })
+      const baseId = id.endsWith('?inline') ? id.slice(0, -'?inline'.length) : id
 
-        return css ?? ''
+      if (baseId === VIRTUAL_CSS_ID_RESOLVED) {
+        // In build mode, emit only the placeholder. `generateBundle` will replace it with
+        // tree-shaken declarations once Vite has walked the actual CSS usage.
+        if (isBuild) {
+          return VIRTUAL_CSS_PLACEHOLDER
+        }
+
+        // In dev mode, serve all tokens so HMR and arbitrary token usage work.
+        return snowContext.emitAllCss({ minify: false }) ?? ''
       }
 
       if (id === VIRTUAL_MODULE_ID_RESOLVED) {
@@ -242,11 +268,29 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
     generateBundle(_, bundle) {
       const inject = snowContext.config.config.inject
 
-      const source = snowContext.emitCss({
+      const emitted = snowContext.emitCss({
         minify: true,
       })
 
-      if (!source) {
+      // When virtual CSS is imported, replace the placeholder in the bundle's CSS/HTML assets with
+      // tree-shaken declarations. Skip separate asset/inline emission since the CSS is already
+      // part of the bundle via Vite's CSS pipeline.
+      if (virtualCssImported) {
+        for (const asset of Object.values(bundle)) {
+          if (
+            asset.type === 'asset' &&
+            typeof asset.source === 'string' &&
+            asset.source.includes(VIRTUAL_CSS_PLACEHOLDER) &&
+            (asset.fileName.endsWith('.css') || asset.fileName.endsWith('.html'))
+          ) {
+            asset.source = asset.source.replace(VIRTUAL_CSS_PLACEHOLDER, emitted ?? '')
+          }
+        }
+
+        return
+      }
+
+      if (!emitted) {
         return
       }
 
@@ -254,14 +298,14 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         const file = this.emitFile({
           type: 'asset',
           name: 'snow.css',
-          source,
+          source: emitted,
         })
 
         assetFileId = this.getFileName(file)
       }
 
       if (inject === 'inline') {
-        assetSource = source
+        assetSource = emitted
       }
 
       if (inject === 'at-rule') {
@@ -281,7 +325,7 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
                 )
               }
 
-              asset.source = snowContext.replaceAtRule(content, atRules[0], source)
+              asset.source = snowContext.replaceAtRule(content, atRules[0], emitted)
               atRuleFound = true
             }
           }

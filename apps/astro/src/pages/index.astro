@@ -1,0 +1,29 @@
+---
+import 'virtual:snowcss.css'
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Astro</title>
+  </head>
+  <body>
+    <main class="container">
+      <h1 class="heading">Astro</h1>
+    </main>
+  </body>
+</html>
+
+<style>
+  .container {
+    padding: --token("size.4");
+  }
+
+  .heading {
+    font-family: --token("font.sans");
+  }
+</style>
