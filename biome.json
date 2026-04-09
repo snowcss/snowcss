@@ -1,7 +1,17 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "includes": ["**", "!dist", "!**/dist", "!**/*.local.json", "!**/*.vue", "!**/runtime.js"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/build",
+      "!**/.astro",
+      "!**/.svelte-kit",
+      "!**/*.local.json",
+      "!**/*.vue",
+      "!**/*.svelte",
+      "!**/runtime.js"
+    ]
   },
   "assist": {
     "actions": {
