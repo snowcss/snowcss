@@ -18,13 +18,16 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
+
     permissions:
       contents: write
       pull-requests: write
       id-token: write
+
     outputs:
       published: ${{ steps.changesets.outputs.published }}
 
@@ -51,8 +54,8 @@ jobs:
         with:
           version: pnpm run version
           publish: pnpm run release
-          title: "chore: version packages"
-          commit: "chore: version packages"
+          title: "*: version packages"
+          commit: "Version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
