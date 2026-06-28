@@ -17,9 +17,14 @@ export interface InputConfig<T extends UserTokens = UserTokens> {
   /**
    * How to inject the generated CSS variables:
    *
-   * - `at-rule`: find and replace `@snowcss` at-rule in CSS assets.
-   * - `asset`: emit as CSS asset that will be referenced in the `index.html`.
-   * - `inline`: emit as inline `<style>` tag that will be injected into the `index.html`.
+   * - `at-rule`: find and replace the `@snowcss` at-rule in a CSS file. Works in any framework.
+   * - `asset`: emit a CSS asset linked from `index.html`. SPA-only (needs an `index.html`).
+   * - `inline`: emit an inline `<style>` tag in `index.html`. SPA-only (needs an `index.html`).
+   *
+   * SSR and SSG apps should either:
+   *
+   * - Import `snowcss/tokens.css` globally to deliver tokens.
+   * - Use `at-rule` to expand an `@snowcss` marker in a CSS file.
    *
    * @default 'asset'
    */

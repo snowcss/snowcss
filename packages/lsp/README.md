@@ -1,4 +1,4 @@
-# @snowcss/lsp
+# `@snowcss/lsp`
 
 Language server for Snow CSS providing intelligent editor support for `--token()` and `--value()` functions.
 

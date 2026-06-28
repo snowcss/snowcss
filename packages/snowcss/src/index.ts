@@ -1,2 +1,2 @@
-export type { UserConfig, UserTokens } from '@snowcss/internal'
+export type { Tokens, UserConfig, UserTokens } from '@snowcss/internal'
 export { defineConfig, defineTokens } from '@snowcss/internal'

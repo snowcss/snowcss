@@ -1,12 +1,14 @@
 import type { Diagnostics } from '@snowcss/internal'
-import type { PluginContext, TransformPluginContext } from 'rollup'
+import type { OutputAsset, OutputChunk, PluginContext, TransformPluginContext } from 'rollup'
 import type { HtmlTagDescriptor, Plugin } from 'vite'
 
 import { generateVirtualModule, writeTypesFile } from './codegen'
 import {
   SNOWCSS_CLIENT_ID,
+  SNOWCSS_TOKENS_CSS_ID,
   VIRTUAL_CSS_ID,
   VIRTUAL_CSS_ID_RESOLVED,
+  VIRTUAL_CSS_PLACEHOLDER,
   VIRTUAL_MODULE_ID,
   VIRTUAL_MODULE_ID_RESOLVED,
 } from './constants'
@@ -46,33 +48,17 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
   let snowContext: Context
 
   let isBuild: boolean = false
+  let virtualCssImported: boolean = false
   let assetFileId: string | null = null
   let assetSource: string | null = null
   let atRuleFileId: string | null = null
 
-  function createInlineStyle(css: string): HtmlTagDescriptor {
-    return {
-      tag: 'style',
-      injectTo: 'head',
-      attrs: {
-        type: 'text/css',
-      },
-      children: css,
-    }
-  }
-
-  function createAssetLink(href: string): HtmlTagDescriptor {
-    return {
-      tag: 'link',
-      injectTo: 'head',
-      attrs: {
-        rel: 'stylesheet',
-        href,
-      },
-    }
-  }
-
   function getIndexTag(): HtmlTagDescriptor | null {
+    // When virtual CSS is imported directly, the framework handles CSS delivery.
+    if (virtualCssImported) {
+      return null
+    }
+
     const inject = snowContext.config.config.inject
 
     if (inject === 'inline') {
@@ -106,19 +92,6 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
     }
 
     return null
-  }
-
-  function emitDiagnostics(
-    ctx: TransformPluginContext | PluginContext,
-    diagnostics: Diagnostics,
-  ): void {
-    if (diagnostics.size) {
-      for (const diagnostic of diagnostics) {
-        if (diagnostic.severity === 'error') ctx.error(diagnostic.message)
-        if (diagnostic.severity === 'warning') ctx.warn(diagnostic.message)
-        if (diagnostic.severity === 'info') ctx.info(diagnostic.message)
-      }
-    }
   }
 
   return {
@@ -164,24 +137,44 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         }
       })
 
-      // Add middleware to handle virtual CSS modules.
+      // Serve virtual CSS at /virtual:snowcss.css.
       server.middlewares.use(serveVirtualCss(snowContext))
     },
 
     resolveId(id) {
       // Resolve 'virtual:snowcss' imports.
-      if (id === VIRTUAL_MODULE_ID) return VIRTUAL_MODULE_ID_RESOLVED
-      // Resolve 'virtual:snowcss/tokens.css' imports.
-      if (id === VIRTUAL_CSS_ID) return VIRTUAL_CSS_ID_RESOLVED
+      if (id === VIRTUAL_MODULE_ID) {
+        return VIRTUAL_MODULE_ID_RESOLVED
+      }
+
+      // Resolve 'snowcss/tokens.css' imports, plus the resolved id itself when Vite's dev server
+      // forwards a browser request for the generated URL back through resolveId.
+      //
+      // Preserve the '?inline' query so Vite's CSS plugin emits the CSS string as the module's
+      // default export (required by SvelteKit's SSR inline-styles path).
+      if (id === SNOWCSS_TOKENS_CSS_ID + '?inline' || id === VIRTUAL_CSS_ID_RESOLVED + '?inline') {
+        virtualCssImported = true
+        return VIRTUAL_CSS_ID_RESOLVED + '?inline'
+      }
+
+      if (id === SNOWCSS_TOKENS_CSS_ID || id === VIRTUAL_CSS_ID_RESOLVED) {
+        virtualCssImported = true
+        return VIRTUAL_CSS_ID_RESOLVED
+      }
     },
 
     load(id) {
-      if (id === VIRTUAL_CSS_ID_RESOLVED) {
-        const css = snowContext.emitAllCss({
-          minify: false,
-        })
+      const baseId = id.endsWith('?inline') ? id.slice(0, -'?inline'.length) : id
 
-        return css ?? ''
+      if (baseId === VIRTUAL_CSS_ID_RESOLVED) {
+        // In build mode, emit only the placeholder. `generateBundle` will replace it with
+        // tree-shaken declarations once Vite has walked the actual CSS usage.
+        if (isBuild) {
+          return VIRTUAL_CSS_PLACEHOLDER
+        }
+
+        // In dev mode, serve all tokens so HMR and arbitrary token usage work.
+        return snowContext.emitAllCss({ minify: false }) ?? ''
       }
 
       if (id === VIRTUAL_MODULE_ID_RESOLVED) {
@@ -242,11 +235,24 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
     generateBundle(_, bundle) {
       const inject = snowContext.config.config.inject
 
-      const source = snowContext.emitCss({
+      const emitted = snowContext.emitCss({
         minify: true,
       })
 
-      if (!source) {
+      // When virtual CSS is imported, replace the placeholder in the bundle's CSS/HTML assets with
+      // tree-shaken declarations. Skip separate asset/inline emission since the CSS is already part
+      // of the bundle via Vite's CSS pipeline.
+      if (virtualCssImported) {
+        for (const asset of Object.values(bundle)) {
+          if (isAssetWithPlaceholder(asset)) {
+            asset.source = asset.source.replace(VIRTUAL_CSS_PLACEHOLDER, emitted ?? '')
+          }
+        }
+
+        return
+      }
+
+      if (!emitted) {
         return
       }
 
@@ -254,14 +260,14 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         const file = this.emitFile({
           type: 'asset',
           name: 'snow.css',
-          source,
+          source: emitted,
         })
 
         assetFileId = this.getFileName(file)
       }
 
       if (inject === 'inline') {
-        assetSource = source
+        assetSource = emitted
       }
 
       if (inject === 'at-rule') {
@@ -281,7 +287,7 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
                 )
               }
 
-              asset.source = snowContext.replaceAtRule(content, atRules[0], source)
+              asset.source = snowContext.replaceAtRule(content, atRules[0], emitted)
               atRuleFound = true
             }
           }
@@ -303,5 +309,51 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         tags: tag ? [tag] : [],
       }
     },
+  }
+}
+
+function createInlineStyle(css: string): HtmlTagDescriptor {
+  return {
+    tag: 'style',
+    injectTo: 'head',
+    attrs: {
+      type: 'text/css',
+    },
+    children: css,
+  }
+}
+
+function createAssetLink(href: string): HtmlTagDescriptor {
+  return {
+    tag: 'link',
+    injectTo: 'head',
+    attrs: {
+      rel: 'stylesheet',
+      href,
+    },
+  }
+}
+
+function isAssetWithPlaceholder(
+  asset: OutputAsset | OutputChunk,
+): asset is OutputAsset & { source: string } {
+  return (
+    asset.type === 'asset' &&
+    typeof asset.source === 'string' &&
+    (asset.fileName.endsWith('.css') || asset.fileName.endsWith('.html')) &&
+    asset.source.includes(VIRTUAL_CSS_PLACEHOLDER)
+  )
+}
+
+function emitDiagnostics(
+  ctx: TransformPluginContext | PluginContext,
+  diagnostics: Diagnostics,
+): void {
+  if (diagnostics.size) {
+    for (const diagnostic of diagnostics) {
+      if (diagnostic.severity === 'error') ctx.error(diagnostic.message)
+      if (diagnostic.severity === 'warning') ctx.warn(diagnostic.message)
+      if (diagnostic.severity === 'info') ctx.info(diagnostic.message)
+    }
   }
 }

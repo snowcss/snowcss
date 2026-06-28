@@ -1,0 +1,53 @@
+{
+  "name": "@snowcss/system",
+  "version": "0.1.0",
+  "description": "Snow CSS token system",
+  "author": "Vladislav Mamon <hello@nrsk.dev>",
+  "private": true,
+  "maintainers": [
+    "Vladislav Mamon <hello@nrsk.dev>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snowcss/snowcss.git",
+    "directory": "packages/system"
+  },
+  "keywords": [
+    "design systems",
+    "design tokens",
+    "typescript",
+    "css",
+    "vite"
+  ],
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "provenance": true,
+    "access": "public",
+    "exports": {
+      ".": {
+        "import": {
+          "types": "./dist/index.d.mts",
+          "default": "./dist/index.mjs"
+        }
+      },
+      "./package.json": "./package.json"
+    }
+  },
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "snowcss": "workspace:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsdown": "catalog:"
+  }
+}

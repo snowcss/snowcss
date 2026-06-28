@@ -13,7 +13,7 @@
 <template>
   <div class="app">
     <header class="header">
-      <h1>@snowcss playground</h1>
+      <h1>@snowcss playground for Vue</h1>
 
       <ul class="links">
         <li

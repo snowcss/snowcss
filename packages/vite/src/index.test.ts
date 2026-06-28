@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import {
   SNOWCSS_CLIENT_ID,
-  VIRTUAL_CSS_ID,
+  SNOWCSS_TOKENS_CSS_ID,
   VIRTUAL_CSS_ID_RESOLVED,
   VIRTUAL_MODULE_ID,
   VIRTUAL_MODULE_ID_RESOLVED,
@@ -31,16 +31,20 @@ describe('snowcss plugin', () => {
   })
 
   describe('dev server', () => {
-    it('resolves virtual module id', async () => {
+    it('resolves snowcss/tokens.css to the virtual CSS id', async () => {
       server = await createServer({
         root: FIXTURES_ATRULE_ROOT,
         plugins: [snowCssPlugin()],
         logLevel: 'silent',
       })
 
-      const resolved = await server.pluginContainer.resolveId(VIRTUAL_CSS_ID)
+      const resolved = await server.pluginContainer.resolveId(SNOWCSS_TOKENS_CSS_ID)
+      const resolvedInline = await server.pluginContainer.resolveId(
+        SNOWCSS_TOKENS_CSS_ID + '?inline',
+      )
 
       expect(resolved?.id).toBe(VIRTUAL_CSS_ID_RESOLVED)
+      expect(resolvedInline?.id).toBe(VIRTUAL_CSS_ID_RESOLVED + '?inline')
     })
 
     it('resolves virtual JS module id', async () => {
