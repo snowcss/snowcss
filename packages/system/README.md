@@ -1,6 +1,6 @@
-# `@snowcss/vite`
+# `@snowcss/system`
 
-Snow CSS vite plugin.
+Snow CSS token system.
 
 ## License
 
