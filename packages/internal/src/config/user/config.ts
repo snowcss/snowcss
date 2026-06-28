@@ -17,9 +17,13 @@ export interface InputConfig<T extends UserTokens = UserTokens> {
   /**
    * How to inject the generated CSS variables:
    *
-   * - `at-rule`: find and replace `@snowcss` at-rule in CSS assets.
-   * - `asset`: emit as CSS asset that will be referenced in the `index.html`.
-   * - `inline`: emit as inline `<style>` tag that will be injected into the `index.html`.
+   * - `at-rule`: find and replace the `@snowcss` at-rule in a CSS file. Works in any framework.
+   * - `asset`: emit a CSS asset linked from `index.html`. SPA-only (needs an `index.html`).
+   * - `inline`: emit an inline `<style>` tag in `index.html`. SPA-only (needs an `index.html`).
+   *
+   * `asset` and `inline` rely on Vite's `transformIndexHtml` hook and silently do nothing in Astro
+   * or SvelteKit, which have no `index.html`. In those apps import `snowcss/tokens.css` to deliver
+   * tokens, or use `at-rule` to expand an `@snowcss` marker in a CSS file.
    *
    * @default 'asset'
    */

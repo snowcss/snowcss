@@ -6,26 +6,38 @@ interface Tokens {
   [key: string]: string | Tokens
 }
 
-declare global {
-  /** Base interface for token registry. Augmented by generated types from the Vite plugin. */
-  interface SnowTokenRegistry {
-    /** Contains all resolved snowcss tokens. */
-    tokens: Tokens
-    /** Contains a union of all token dot-paths. */
-    path: string
-    /** Contains a union of all terminal token dot-paths. */
-    terminalPath: string
-  }
+/** Fallback shape used when the Vite plugin has not augmented {@link SnowTokenRegistry}. */
+interface SnowTokenRegistryFallback {
+  /** Contains all resolved snowcss tokens. */
+  tokens: Tokens
+  /** Contains a union of all token dot-paths. */
+  path: string
+  /** Contains a union of all terminal token dot-paths. */
+  terminalPath: string
 }
 
+declare global {
+  /**
+   * Token registry. The Vite plugin merges concrete `tokens`, `path` and `terminalPath` members
+   * into this interface. It is left empty here so the generated declaration merges without a
+   * conflicting-types error.
+   */
+  interface SnowTokenRegistry {}
+}
+
+/** The plugin-augmented registry, or the fallback shape when it has not been augmented. */
+type Registry = keyof SnowTokenRegistry extends never
+  ? SnowTokenRegistryFallback
+  : SnowTokenRegistry
+
 /** Contains all resolved snowcss tokens. */
-export type SnowTokens = SnowTokenRegistry['tokens']
+export type SnowTokens = Registry['tokens']
 
 /** Contains a union of all token dot-paths. */
-export type SnowPath = SnowTokenRegistry['path']
+export type SnowPath = Registry['path']
 
 /** Contains a union of all terminal token dot-paths. */
-export type SnowTerminalPath = SnowTokenRegistry['terminalPath']
+export type SnowTerminalPath = Registry['terminalPath']
 
 /** Gets a value by path from the {@link SnowTokens}. */
 export type GetValue<P extends string> = GetByPath<SnowTokens, SplitPath<P>>
