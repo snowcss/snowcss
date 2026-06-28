@@ -8,7 +8,7 @@
     "changeset": "changeset",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "playground:build": "pnpm --filter @snowcs/playground build",
+    "playground:build": "pnpm --filter @snowcss/playground build",
     "playground:dev": "pnpm --filter @snowcss/playground dev",
     "prepare": "lefthook install",
     "release": "pnpm build && changeset publish",
