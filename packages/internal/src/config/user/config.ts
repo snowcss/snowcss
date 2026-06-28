@@ -21,9 +21,10 @@ export interface InputConfig<T extends UserTokens = UserTokens> {
    * - `asset`: emit a CSS asset linked from `index.html`. SPA-only (needs an `index.html`).
    * - `inline`: emit an inline `<style>` tag in `index.html`. SPA-only (needs an `index.html`).
    *
-   * `asset` and `inline` rely on Vite's `transformIndexHtml` hook and silently do nothing in Astro
-   * or SvelteKit, which have no `index.html`. In those apps import `snowcss/tokens.css` to deliver
-   * tokens, or use `at-rule` to expand an `@snowcss` marker in a CSS file.
+   * SSR and SSG apps should either:
+   *
+   * - Import `snowcss/tokens.css` globally to deliver tokens.
+   * - Use `at-rule` to expand an `@snowcss` marker in a CSS file.
    *
    * @default 'asset'
    */
