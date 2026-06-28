@@ -1,5 +1,18 @@
 # @snowcss/vite
 
+## 0.4.0
+
+### Minor Changes
+
+- [#23](https://github.com/snowcss/snowcss/pull/23) [`72be759`](https://github.com/snowcss/snowcss/commit/72be7598004b77a7f732777c25b004e0ea821e45) Thanks [@norskeld](https://github.com/norskeld)! - Add support for SSR/SSG apps using new `snowcss/tokens.css` export
+
+  `snowcss/client` runtime functions (`token`, `value`, `tokens`) now work in server and prerender bundles as well as the browser, since the import resolves to an internal virtual module that Vite does not externalize
+
+### Patch Changes
+
+- Updated dependencies [[`72be759`](https://github.com/snowcss/snowcss/commit/72be7598004b77a7f732777c25b004e0ea821e45)]:
+  - @snowcss/internal@0.1.3
+
 ## 0.3.0
 
 ### Minor Changes
