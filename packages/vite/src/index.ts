@@ -5,6 +5,7 @@ import type { HtmlTagDescriptor, Plugin } from 'vite'
 import { generateVirtualModule, writeTypesFile } from './codegen'
 import {
   SNOWCSS_CLIENT_ID,
+  SNOWCSS_TOKENS_CSS_ID,
   VIRTUAL_CSS_ID,
   VIRTUAL_CSS_ID_RESOLVED,
   VIRTUAL_CSS_PLACEHOLDER,
@@ -146,17 +147,17 @@ export default function snowCssPlugin(options: SnowPluginOptions = {}): Plugin {
         return VIRTUAL_MODULE_ID_RESOLVED
       }
 
-      // Resolve 'virtual:snowcss.css' imports, plus the resolved id itself when Vite's dev server
+      // Resolve 'snowcss/tokens.css' imports, plus the resolved id itself when Vite's dev server
       // forwards a browser request for the generated URL back through resolveId.
       //
       // Preserve the '?inline' query so Vite's CSS plugin emits the CSS string as the module's
       // default export (required by SvelteKit's SSR inline-styles path).
-      if (id === VIRTUAL_CSS_ID + '?inline' || id === VIRTUAL_CSS_ID_RESOLVED + '?inline') {
+      if (id === SNOWCSS_TOKENS_CSS_ID + '?inline' || id === VIRTUAL_CSS_ID_RESOLVED + '?inline') {
         virtualCssImported = true
         return VIRTUAL_CSS_ID_RESOLVED + '?inline'
       }
 
-      if (id === VIRTUAL_CSS_ID || id === VIRTUAL_CSS_ID_RESOLVED) {
+      if (id === SNOWCSS_TOKENS_CSS_ID || id === VIRTUAL_CSS_ID_RESOLVED) {
         virtualCssImported = true
         return VIRTUAL_CSS_ID_RESOLVED
       }

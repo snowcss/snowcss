@@ -8,6 +8,7 @@
       "!**/.astro",
       "!**/.svelte-kit",
       "!**/*.local.json",
+      "!**/*.astro",
       "!**/*.vue",
       "!**/*.svelte",
       "!**/runtime.js"

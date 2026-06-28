@@ -1,5 +1,5 @@
 <script lang="ts">
-import 'virtual:snowcss.css'
+import 'snowcss/tokens.css'
 
 import favicon from '$lib/assets/favicon.svg'
 
