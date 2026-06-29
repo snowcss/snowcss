@@ -30,6 +30,8 @@ jobs:
 
     outputs:
       published: ${{ steps.changesets.outputs.published }}
+      extension_published: ${{ steps.extension.outputs.published }}
+      extension_version: ${{ steps.extension.outputs.version }}
 
     steps:
       - name: Checkout
@@ -61,11 +63,28 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Detect extension release
+        id: extension
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          version=$(jq -r 'map(select(.name == "snowcss-intellisense")) | .[0].version // ""' \
+            <<< "$PUBLISHED_PACKAGES")
+
+          if [ -n "$version" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
   vscode:
     name: Release Visual Studio Code Extension Artifact
     needs: release
-    if: needs.release.outputs.published == 'true'
+    if: needs.release.outputs.extension_published == 'true'
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
 
@@ -87,30 +106,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Get version
-        id: version
-        run: echo "result=$(jq -r .version editors/vscode/package.json)" >> "$GITHUB_OUTPUT"
-
-      - name: Check if release exists
-        id: check
-        run: |
-          tag="snowcss-intellisense@${{ steps.version.outputs.result }}"
-
-          if gh release view "$tag" > /dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and upload extension
-        if: steps.check.outputs.exists == 'true'
         run: |
+          tag="snowcss-intellisense@${{ needs.release.outputs.extension_version }}"
+
           pnpm vscode:build
           pnpm vscode:package
 
-          gh release upload "snowcss-intellisense@${{ steps.version.outputs.result }}" \
-            editors/vscode/*.vsix
+          if gh release view "$tag" > /dev/null 2>&1; then
+            gh release upload "$tag" editors/vscode/*.vsix --clobber
+          else
+            gh release create "$tag" editors/vscode/*.vsix --title "$tag"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
