@@ -1,5 +1,11 @@
 # @snowcss/internal
 
+## 0.1.3
+
+### Patch Changes
+
+- [#23](https://github.com/snowcss/snowcss/pull/23) [`72be759`](https://github.com/snowcss/snowcss/commit/72be7598004b77a7f732777c25b004e0ea821e45) Thanks [@norskeld](https://github.com/norskeld)! - Properly re-export types needed for `defineTokens`
+
 ## 0.1.2
 
 ### Patch Changes
