@@ -29,6 +29,7 @@ export { ResolvedToken, resolve, resolveAll } from './resolver'
 // Token.
 export { Token } from './token'
 // Utils.
+export type { Flatten, GetByPath, SplitPath, Widen } from './utils'
 export { escapeCssVarName, log, merge, timed, unescapeCssVarName } from './utils'
 // Values and modifiers.
 export type { ModifierKind, RgbaColor, TokenValue, ValueModifier } from './values'

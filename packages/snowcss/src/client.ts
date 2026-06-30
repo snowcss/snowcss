@@ -1,6 +1,6 @@
 /* biome-ignore-all lint/correctness/noUnusedFunctionParameters: Intentionally stubbed. */
 
-import type { GetByPath, SplitPath } from './types'
+import type { GetByPath, SplitPath } from '@snowcss/internal'
 
 interface Tokens {
   [key: string]: string | Tokens

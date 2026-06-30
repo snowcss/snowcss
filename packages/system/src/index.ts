@@ -80,8 +80,8 @@ export const color = defineTokens({
 })
 
 export const outline = defineTokens({
-  ring: '2px solid #60a5fa',
-  double: '2px solid #60a5fa, 1px dashed #4ade80',
+  ring: `2px solid ${color('blue.400')}`,
+  double: `2px solid ${color('blue.400', { as: 'value' })}, 1px dashed ${color('green.400')}`,
 })
 
 export const size = defineTokens({

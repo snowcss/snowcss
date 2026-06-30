@@ -196,9 +196,6 @@ importers:
       vite:
         specifier: 'catalog:'
         version: 7.3.1(@types/node@24.12.2)(jiti@2.6.1)(tsx@4.21.0)
-      vitest:
-        specifier: 'catalog:'
-        version: 4.0.16(@types/node@24.12.2)(jiti@2.6.1)(tsx@4.21.0)
 
   packages/system:
     dependencies:

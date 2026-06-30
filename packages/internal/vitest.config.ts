@@ -9,6 +9,12 @@ const config: UserConfig = defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  test: {
+    typecheck: {
+      enabled: true,
+      include: ['**/*.test-d.ts'],
+    },
+  },
 })
 
 export default config

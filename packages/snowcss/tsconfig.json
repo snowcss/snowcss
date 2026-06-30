@@ -3,6 +3,5 @@
   "compilerOptions": {
     "baseUrl": "."
   },
-  "include": ["src"],
-  "exclude": ["**/__fixtures__/**"]
+  "include": ["src"]
 }
